@@ -1,13 +1,16 @@
 buildscript {
     repositories {
-        mavenCentral()
+        maven {
+            name = 'aliyun'
+            url = 'https://maven.aliyun.com/repository/public'
+        }
+        maven {
+            name = 'lss233'
+            url = 'https://www.lss233.com/artifactory/minecraft'
+        }
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
     }
     dependencies {
@@ -18,11 +21,11 @@ buildscript {
 apply plugin: 'forge'
 
 version = "4.10.0"
-group= "com.flansmod"
+group = "com.flansmod"
 archivesBaseName = "Flan's Mod"
 
 minecraft {
-    version = "1.7.10-10.13.2.1230"
+    version = "1.7.10-10.13.4.1614-1.7.10"
     runDir = "eclipse"
 
     replace "@ALLOWED_VERSION@", "[4.10,4.11)"
@@ -31,8 +34,7 @@ minecraft {
     replaceIn "FlansMod.java"
 }
 
-processResources
-{
+processResources {
     // this will ensure that this task is redone when the versions change.
     inputs.property "version", project.version
     inputs.property "mcversion", project.minecraft.version
@@ -40,11 +42,11 @@ processResources
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-                
+
         // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
+        expand 'version': project.version, 'mcversion': project.minecraft.version
     }
-        
+
     // copy everything else, thats not the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
@@ -60,14 +62,14 @@ task mechaParts(type: Jar) {
 }
 
 task modernWeapons(type: Jar) {
-    from (zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/mw/'}
+    from(zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/mw/' }
     from 'eclipse/Flan/Modern Weapons Pack'
     baseName = 'Modern Warfare'
     appendix = 'Content Pack'
 }
 
 task nerf(type: Jar) {
-    from (zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/nerf/'}
+    from(zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/nerf/' }
     from 'eclipse/Flan/Nerf Pack'
     baseName = 'Nerf'
     appendix = 'Content Pack'
@@ -80,28 +82,28 @@ task simpleParts(type: Jar) {
 }
 
 task titan(type: Jar) {
-    from (zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/titan/'}
+    from(zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/titan/' }
     from 'eclipse/Flan/Titan Pack'
     baseName = 'Titan'
     appendix = 'Content Pack'
 }
 
 task ww2(type: Jar) {
-    from (zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/ww2/'}
+    from(zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/ww2/' }
     from 'eclipse/Flan/WW2 Pack'
     baseName = 'WW2'
     appendix = 'Content Pack'
 }
 
 task yeOlde(type: Jar) {
-    from (zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/yeolde/'}
+    from(zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/yeolde/' }
     from 'eclipse/Flan/Ye Olde Pack'
     baseName = 'Ye Olde'
     appendix = 'Content Pack'
 }
 
 task zombie(type: Jar) {
-    from (zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/zombie/'}
+    from(zipTree("${destinationDir}/${archiveName}")) { include 'com/flansmod/client/model/zombie/' }
     from 'eclipse/Flan/Zombie Pack'
     baseName = 'Zombie'
     appendix = 'Content Pack'
@@ -124,7 +126,7 @@ task clearOutput(type: Delete) {
 
 task outputJar(type: Jar) {
     destinationDir = new File("build/output/mods/")
-    from (zipTree("build/libs/${archiveName}")) {
+    from(zipTree("build/libs/${archiveName}")) {
         exclude '**/mw/'
         exclude '**/nerf/'
         exclude '**/titan/'
@@ -135,7 +137,7 @@ task outputJar(type: Jar) {
 }
 
 task outputPacks(type: Copy) {
-    from ('build/libs/') {
+    from('build/libs/') {
         include "**/*${version}.jar"
         exclude "**/Flan's Mod*.jar"
     }
