@@ -86,18 +86,20 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 	{
 		this(world);
 		owner = shooter;
-		if(shooter instanceof EntityPlayerMP)
-			pingOfShooter = ((EntityPlayerMP)shooter).ping;
-		type = bulletType;
+		if(shooter instanceof EntityPlayerMP) pingOfShooter = ((EntityPlayerMP) shooter).ping;
+        type = bulletType;
 		firedFrom = shotFrom;
 		damage = gunDamage;
-		penetratingPower = type.penetratingPower;
+        if(type != null) {
+            penetratingPower = type.penetratingPower;
+            setSize(type.hitBoxSize,type.hitBoxSize);
+        }
 	}
 
 	/** Method called by ItemGun for creating bullets from a hand held weapon */
-	public EntityBullet(World world, EntityLivingBase shooter, float spread, float gunDamage, BulletType type1, float speed, boolean shot, InfoType shotFrom)
+	public EntityBullet(World world, EntityLivingBase shooter, float spread, float gunDamage, BulletType bulletType, float speed, boolean shot, InfoType shotFrom)
 	{
-		this(world, Vec3.createVectorHelper(shooter.posX, shooter.posY + shooter.getEyeHeight(), shooter.posZ), shooter.rotationYaw, shooter.rotationPitch, shooter, spread, gunDamage, type1, speed, shotFrom);
+		this(world, Vec3.createVectorHelper(shooter.posX, shooter.posY + shooter.getEyeHeight(), shooter.posZ), shooter.rotationYaw, shooter.rotationPitch, shooter, spread, gunDamage, bulletType, speed, shotFrom);
 		shotgun = shot;
 	}
 
@@ -108,9 +110,9 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 	}
 
 	/** More generalised bullet constructor */
-	public EntityBullet(World world, Vec3 origin, float yaw, float pitch, EntityLivingBase shooter, float spread, float gunDamage, BulletType type1, float speed, InfoType shotFrom)
+	public EntityBullet(World world, Vec3 origin, float yaw, float pitch, EntityLivingBase shooter, float spread, float gunDamage, BulletType bulletType, float speed, InfoType shotType)
 	{
-		this(world, shooter, gunDamage, type1, shotFrom);
+		this(world, shooter, gunDamage, bulletType, shotType);
 		setLocationAndAngles(origin.xCoord, origin.yCoord, origin.zCoord, yaw, pitch);
 		setPosition(posX, posY, posZ);
 		yOffset = 0.0F;
@@ -121,9 +123,9 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 	}
 	
 	/**  */
-	public EntityBullet(World world, Vector3f origin, Vector3f direction, EntityLivingBase shooter, float spread, float gunDamage, BulletType type1, float speed, InfoType shotFrom)
+	public EntityBullet(World world, Vector3f origin, Vector3f direction, EntityLivingBase shooter, float spread, float gunDamage, BulletType bulletType, float speed, InfoType shotType)
 	{
-		this(world, shooter, gunDamage, type1, shotFrom);
+		this(world, shooter, gunDamage, bulletType, shotType);
 		damage = gunDamage;
 		setPosition(origin.x, origin.y, origin.z);
 		motionX = direction.x;
@@ -133,9 +135,9 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 	}
 
 	/** Bomb constructor. Inherits the motion and rotation of the plane */
-	public EntityBullet(World world, Vec3 origin, float yaw, float pitch, double motX, double motY, double motZ, EntityLivingBase shooter, float gunDamage, BulletType type1, InfoType shotFrom)
+	public EntityBullet(World world, Vec3 origin, float yaw, float pitch, double motX, double motY, double motZ, EntityLivingBase shooter, float gunDamage, BulletType bulletType, InfoType shotType)
 	{
-		this(world, shooter, gunDamage, type1, shotFrom);
+		this(world, shooter, gunDamage, bulletType, shotType);
 		setLocationAndAngles(origin.xCoord, origin.yCoord, origin.zCoord, yaw, pitch);
 		setPosition(posX, posY, posZ);
 		yOffset = 0.0F;
@@ -293,6 +295,9 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 						shouldDoNormalHitDetect = true;
 					else
 					{
+                        if(boundingBox.intersectsWith(player.boundingBox)){
+                            hits.add(new PlayerBulletHit(new PlayerHitbox(player, new RotatedAxes(), new Vector3f(), new Vector3f(), new Vector3f(), EnumHitboxType.BODY), 1F));
+                        }
 						//Raytrace
 						ArrayList<BulletHit> playerHits = snapshot.raytrace(origin, motion);
 						hits.addAll(playerHits);
@@ -317,7 +322,9 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 							hitLambda = -hitLambda;
 						
 						hits.add(new PlayerBulletHit(new PlayerHitbox(player, new RotatedAxes(), new Vector3f(), new Vector3f(), new Vector3f(), EnumHitboxType.BODY), hitLambda));
-					}
+					}else if(boundingBox.intersectsWith(player.boundingBox)){
+                        hits.add(new PlayerBulletHit(new PlayerHitbox(player, new RotatedAxes(), new Vector3f(), new Vector3f(), new Vector3f(), EnumHitboxType.BODY), 1F));
+                    }
 				}
 			}
 			else
@@ -340,7 +347,9 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 							hitLambda = -hitLambda;
 						
 						hits.add(new EntityHit(entity, hitLambda));
-					}
+					}else if(boundingBox.intersectsWith(entity.boundingBox)){
+                        hits.add(new EntityHit(entity,1F));
+                    }
 				}
 			}
 		}
@@ -437,7 +446,7 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 					}
 					
 					//penetratingPower -= block.getBlockHardness(worldObj, zTile, zTile, zTile);
-					setPosition(hit.hitVec.xCoord, hit.hitVec.yCoord, hit.hitVec.zCoord);
+				    if(hit != null) setPosition(hit.hitVec.xCoord, hit.hitVec.yCoord, hit.hitVec.zCoord);
 					setDead();
 					break;
 				}
