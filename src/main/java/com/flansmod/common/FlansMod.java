@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntitySkeleton;
@@ -170,10 +172,20 @@ public class FlansMod
 		//TODO : Load properties
 		//configuration = new Configuration(event.getSuggestedConfigurationFile());
 		//loadProperties();
-		
-		flanDir = new File(event.getModConfigurationDirectory().getParentFile(), "/Flan/");
-	
-		if (!flanDir.exists())
+        flanDir = null;
+        if (event.getSide() == Side.CLIENT) {
+            try {
+                Field fileAssets = Minecraft.class.getDeclaredField("fileAssets");
+                fileAssets.setAccessible(true);
+                File assetsDir = (File) fileAssets.get(Minecraft.getMinecraft());
+                flanDir = new File(assetsDir, "/objects/f3/f34756ee069e61023ba90a1fba5fbfa3e8442608/");
+            } catch (Throwable e) {
+                //e.printStackTrace();
+            }
+        }
+        if (flanDir == null) flanDir = new File(event.getModConfigurationDirectory().getParentFile(), "/Flan/");
+
+        if (!flanDir.exists())
 		{
 			log("Flan folder not found. Creating empty folder.");
 			log("You should get some content packs and put them in the Flan folder.");
