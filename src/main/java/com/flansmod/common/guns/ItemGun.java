@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import com.flansmod.client.FlansModResourceHandler;
+import com.flansmod.client.TickHandlerClient;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -183,7 +185,9 @@ public class ItemGun extends Item implements IFlanItem
 			Minecraft mc = Minecraft.getMinecraft();
 			EntityPlayer player = (EntityPlayer)entity;
 			PlayerData data = PlayerHandler.getPlayerData(player, Side.CLIENT);
-			
+
+			TickHandlerClient.crossHair = FlansModResourceHandler.getCrossHairTexture(type);
+
 			//Play idle sounds
 			if (soundDelay <= 0 && type.idleSound != null)
 			{

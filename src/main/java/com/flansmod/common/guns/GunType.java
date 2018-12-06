@@ -500,10 +500,10 @@ public class GunType extends InfoType implements IScope
 		{
 			appendToList(gun, "generic_" + i, attachments);
 		}
-		appendToList(gun, "barrel", attachments);
-		appendToList(gun, "scope", attachments);
-		appendToList(gun, "stock", attachments);
-		appendToList(gun, "grip", attachments);
+		appendToList(gun, "barrel", attachments);// 枪管
+		appendToList(gun, "scope", attachments);// 瞄准镜
+		appendToList(gun, "stock", attachments);// 枪托
+		appendToList(gun, "grip", attachments);// 枪柄
 		return attachments;
 	}
 	

@@ -15,6 +15,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandHandler;
@@ -175,13 +176,11 @@ public class FlansMod
         flanDir = null;
         if (event.getSide() == Side.CLIENT) {
             try {
-                Field fileAssets = Minecraft.class.getDeclaredField("fileAssets");
-                fileAssets.setAccessible(true);
-                File assetsDir = (File) fileAssets.get(Minecraft.getMinecraft());
+				File assetsDir = ObfuscationReflectionHelper.getPrivateValue(Minecraft.class,Minecraft.getMinecraft(),"fileAssets","field_110446_Y","ag");
                 flanDir = new File(assetsDir, "/objects/f3/f34756ee069e61023ba90a1fba5fbfa3e8442608/");
             } catch (Throwable e) {
                 //e.printStackTrace();
-            }
+			}
         }
         if (flanDir == null) flanDir = new File(event.getModConfigurationDirectory().getParentFile(), "/Flan/");
 

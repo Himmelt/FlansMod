@@ -56,7 +56,10 @@ public class TickHandlerClient
 	public static final ResourceLocation offHand = new ResourceLocation("flansmod","gui/offHand.png");
 	public static ArrayList<Vector3i> blockLightOverrides = new ArrayList<Vector3i>();
 	public static int lightOverrideRefreshRate = 5;
-	
+
+	private final Minecraft theMc = Minecraft.getMinecraft();
+	public static ResourceLocation crossHair = null;
+
 	public TickHandlerClient()
 	{
 		FMLCommonHandler.instance().bus().register(this);
@@ -79,13 +82,28 @@ public class TickHandlerClient
 	public void eventHandler(RenderGameOverlayEvent event)
 	{
 		Minecraft mc = Minecraft.getMinecraft();
-		
+
 		//Remove crosshairs if looking down the sights of a gun
-		if(event.type == ElementType.CROSSHAIRS && FlansModClient.currentScope != null)
-		{
+        if(event.type == ElementType.CROSSHAIRS && crossHair != null)
+        {
 			event.setCanceled(true);
+			// if not looking down the sights of a gun
+			if (FlansModClient.currentScope == null) {
+				// 没有开瞄准镜，就渲染自定义准星
+				int width = event.resolution.getScaledWidth();
+				int height = event.resolution.getScaledHeight();
+				mc.thePlayer.getHeldItem();
+				if (mc.thePlayer.isSneaking()) {
+					drawCrossHair(width,height,1);
+				} else if (mc.thePlayer.isSprinting()) {
+					drawCrossHair(width,height,3);
+				} else {
+					drawCrossHair(width,height,2);
+				}
+			}
+			TickHandlerClient.crossHair = null;
 			return;
-		}
+        }
 		
 		ScaledResolution scaledresolution = new ScaledResolution(FlansModClient.minecraft, FlansModClient.minecraft.displayWidth, FlansModClient.minecraft.displayHeight);
 		int i = scaledresolution.getScaledWidth();
@@ -340,7 +358,16 @@ public class TickHandlerClient
 			}
 	    }
 	}
-	
+
+	private void drawCrossHair(int width, int height,int offset){
+		theMc.getTextureManager().bindTexture(crossHair);
+		GL11.glEnable(GL11.GL_BLEND);
+		OpenGlHelper.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0);
+		theMc.ingameGUI.drawTexturedModalRect(width / 2 - 7, height / 2 - 7, 0, 0, 32*offset, 32);
+		OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+		GL11.glDisable(GL11.GL_BLEND);
+	}
+
 	@SubscribeEvent
 	public void renderTick(TickEvent.RenderTickEvent event)
 	{

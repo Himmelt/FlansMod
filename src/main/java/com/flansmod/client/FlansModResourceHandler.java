@@ -15,7 +15,8 @@ public class FlansModResourceHandler
 	private static HashMap<Paintjob, ResourceLocation> paintjobMap = new HashMap<Paintjob, ResourceLocation>();
 	private static HashMap<String, ResourceLocation> scopeMap = new HashMap<String, ResourceLocation>();
 	private static HashMap<String, ResourceLocation> soundMap = new HashMap<String, ResourceLocation>();
-	
+	private static HashMap<InfoType,ResourceLocation> crossHairMap = new HashMap<>();
+
 	public static ResourceLocation getIcon(InfoType infoType)
 	{
 		if(iconMap.containsKey(infoType))
@@ -40,6 +41,13 @@ public class FlansModResourceHandler
 			return resLoc;
 		}
 		else return null;
+	}
+
+	public static ResourceLocation getCrossHairTexture(GunType gunType){
+		if (crossHairMap.containsKey(gunType)) return textureMap.get(gunType);
+		ResourceLocation resLoc = new ResourceLocation("flansmod", "textures/crosshairs/" + gunType.shortName + ".png");
+		textureMap.put(gunType, resLoc);
+		return resLoc;
 	}
 	
 	public static ResourceLocation getDeployableTexture(GunType gunType)
