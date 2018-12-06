@@ -1,8 +1,14 @@
 package com.flansmod.client;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
+import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.client.renderer.texture.SimpleTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.texture.TextureUtil;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -81,8 +87,10 @@ public class TickHandlerClient
 	@SubscribeEvent
 	public void eventHandler(RenderGameOverlayEvent event)
 	{
-		Minecraft mc = Minecraft.getMinecraft();
-
+        ItemStack heldItem = theMc.thePlayer.getHeldItem();
+        if (heldItem != null && heldItem.getItem() instanceof ItemGun){
+            crossHair = FlansModResourceHandler.getCrossHairTexture(((ItemGun) heldItem.getItem()).type);
+        } else crossHair = null;
 		//Remove crosshairs if looking down the sights of a gun
         if(event.type == ElementType.CROSSHAIRS && crossHair != null)
         {
@@ -92,16 +100,15 @@ public class TickHandlerClient
 				// 没有开瞄准镜，就渲染自定义准星
 				int width = event.resolution.getScaledWidth();
 				int height = event.resolution.getScaledHeight();
-				mc.thePlayer.getHeldItem();
-				if (mc.thePlayer.isSneaking()) {
-					drawCrossHair(width,height,1);
-				} else if (mc.thePlayer.isSprinting()) {
-					drawCrossHair(width,height,3);
-				} else {
+				theMc.thePlayer.getHeldItem();
+				if (theMc.thePlayer.isSneaking()) {
+					drawCrossHair(width,height,0);
+				} else if (theMc.thePlayer.isSprinting()) {
 					drawCrossHair(width,height,2);
+				} else {
+					drawCrossHair(width,height,1);
 				}
 			}
-			TickHandlerClient.crossHair = null;
 			return;
         }
 		
@@ -119,9 +126,9 @@ public class TickHandlerClient
 			{
 				overlayTexture = FlansModClient.currentScope.getZoomOverlay();
 			}
-			else if(mc.thePlayer != null)
+			else if(theMc.thePlayer != null)
 			{
-				ItemStack stack = mc.thePlayer.inventory.armorInventory[3];
+				ItemStack stack = theMc.thePlayer.inventory.armorInventory[3];
 				if(stack != null && stack.getItem() instanceof ItemTeamArmour)
 				{
 					overlayTexture = ((ItemTeamArmour)stack.getItem()).type.overlay;
@@ -138,7 +145,7 @@ public class TickHandlerClient
 				GL11.glColor4f(1F, 1F, 1F, 1.0F);
 				GL11.glDisable(3008 /* GL_ALPHA_TEST */);
 
-				mc.renderEngine.bindTexture(FlansModResourceHandler.getScope(overlayTexture));
+				theMc.renderEngine.bindTexture(FlansModResourceHandler.getScope(overlayTexture));
 
 				tessellator.startDrawingQuads();
 				tessellator.addVertexWithUV(i / 2 - 2 * j, j, -90D, 0.0D, 1.0D);
@@ -156,9 +163,9 @@ public class TickHandlerClient
 	    if(!event.isCancelable() && event.type == ElementType.HOTBAR)
 	    {      
 			//Player ammo overlay
-			if(mc.thePlayer != null)
+			if(theMc.thePlayer != null)
 			{
-				ItemStack stack = mc.thePlayer.inventory.getCurrentItem();
+				ItemStack stack = theMc.thePlayer.inventory.getCurrentItem();
 				if(stack != null && stack.getItem() instanceof ItemGun)
 				{
 					ItemGun gunItem = (ItemGun)stack.getItem();
@@ -172,22 +179,22 @@ public class TickHandlerClient
 							RenderHelper.enableGUIStandardItemLighting();
 							GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 							OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240F, 240F);
-							drawSlotInventory(mc.fontRenderer, bulletStack, i / 2 + 16 + x, j - 65);
+							drawSlotInventory(theMc.fontRenderer, bulletStack, i / 2 + 16 + x, j - 65);
 							GL11.glDisable(GL12.GL_RESCALE_NORMAL);
 							RenderHelper.disableStandardItemLighting();
 							String s = (bulletStack.getMaxDamage() - bulletStack.getItemDamage()) + "/" + bulletStack.getMaxDamage();
 							if(bulletStack.getMaxDamage() == 1)
 								s = "";
-							mc.fontRenderer.drawString(s, i / 2 + 32 + x, j - 59, 0x000000);
-							mc.fontRenderer.drawString(s, i / 2 + 33 + x, j - 60, 0xffffff);
-							x += 16 + mc.fontRenderer.getStringWidth(s);
+							theMc.fontRenderer.drawString(s, i / 2 + 32 + x, j - 59, 0x000000);
+							theMc.fontRenderer.drawString(s, i / 2 + 33 + x, j - 60, 0xffffff);
+							x += 16 + theMc.fontRenderer.getStringWidth(s);
 						}
 					}
 					//Render secondary gun
-					PlayerData data = PlayerHandler.getPlayerData(mc.thePlayer, Side.CLIENT);
+					PlayerData data = PlayerHandler.getPlayerData(theMc.thePlayer, Side.CLIENT);
 					if(gunType.oneHanded && data.offHandGunSlot != 0)
 					{
-						ItemStack offHandStack = mc.thePlayer.inventory.getStackInSlot(data.offHandGunSlot - 1);
+						ItemStack offHandStack = theMc.thePlayer.inventory.getStackInSlot(data.offHandGunSlot - 1);
 						if(offHandStack != null && offHandStack.getItem() instanceof ItemGun)
 						{
 							GunType offHandGunType = ((ItemGun)offHandStack.getItem()).type;
@@ -207,14 +214,14 @@ public class TickHandlerClient
 									GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 									GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 									OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240F, 240F);
-									drawSlotInventory(mc.fontRenderer, bulletStack, i / 2 - 32 - x, j - 65);	
-									x += 16 + mc.fontRenderer.getStringWidth(s);
+									drawSlotInventory(theMc.fontRenderer, bulletStack, i / 2 - 32 - x, j - 65);
+									x += 16 + theMc.fontRenderer.getStringWidth(s);
 									
 									//Draw the string
 									GL11.glDisable(GL12.GL_RESCALE_NORMAL);
 									RenderHelper.disableStandardItemLighting();
-									mc.fontRenderer.drawString(s, i / 2 - 16 - x, j - 59, 0x000000);
-									mc.fontRenderer.drawString(s, i / 2 - 17 - x, j - 60, 0xffffff);
+									theMc.fontRenderer.drawString(s, i / 2 - 16 - x, j - 59, 0x000000);
+									theMc.fontRenderer.drawString(s, i / 2 - 17 - x, j - 60, 0xffffff);
 								}
 							}
 						}
@@ -233,7 +240,7 @@ public class TickHandlerClient
 				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 				GL11.glDisable(3008 /* GL_ALPHA_TEST */);
 	
-				mc.renderEngine.bindTexture(GuiTeamScores.texture);
+				theMc.renderEngine.bindTexture(GuiTeamScores.texture);
 								
 				tessellator.startDrawingQuads();
 				tessellator.addVertexWithUV(i / 2 - 43, 27, -90D, 85D / 256D, 27D / 256D);
@@ -270,23 +277,23 @@ public class TickHandlerClient
 					GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 					
 					//Draw the team scores
-					mc.fontRenderer.drawString(teamInfo.teamData[0].score + "", i / 2 - 35, 9, 0x000000);
-					mc.fontRenderer.drawString(teamInfo.teamData[0].score + "", i / 2 - 36, 8, 0xffffff);
-					mc.fontRenderer.drawString(teamInfo.teamData[1].score + "", i / 2 + 35 - mc.fontRenderer.getStringWidth(teamInfo.teamData[1].score + ""), 9, 0x000000);
-					mc.fontRenderer.drawString(teamInfo.teamData[1].score + "", i / 2 + 34 - mc.fontRenderer.getStringWidth(teamInfo.teamData[1].score + ""), 8, 0xffffff);
+					theMc.fontRenderer.drawString(teamInfo.teamData[0].score + "", i / 2 - 35, 9, 0x000000);
+					theMc.fontRenderer.drawString(teamInfo.teamData[0].score + "", i / 2 - 36, 8, 0xffffff);
+					theMc.fontRenderer.drawString(teamInfo.teamData[1].score + "", i / 2 + 35 - theMc.fontRenderer.getStringWidth(teamInfo.teamData[1].score + ""), 9, 0x000000);
+					theMc.fontRenderer.drawString(teamInfo.teamData[1].score + "", i / 2 + 34 - theMc.fontRenderer.getStringWidth(teamInfo.teamData[1].score + ""), 8, 0xffffff);
 				}
 				
-				mc.fontRenderer.drawString(teamInfo.gametype + "", i / 2 + 48, 9, 0x000000);
-				mc.fontRenderer.drawString(teamInfo.gametype + "", i / 2 + 47, 8, 0xffffff);
-				mc.fontRenderer.drawString(teamInfo.map + "", i / 2 - 47 - mc.fontRenderer.getStringWidth(teamInfo.map + ""), 9, 0x000000);
-				mc.fontRenderer.drawString(teamInfo.map + "", i / 2 - 48 - mc.fontRenderer.getStringWidth(teamInfo.map + ""), 8, 0xffffff);
+				theMc.fontRenderer.drawString(teamInfo.gametype + "", i / 2 + 48, 9, 0x000000);
+				theMc.fontRenderer.drawString(teamInfo.gametype + "", i / 2 + 47, 8, 0xffffff);
+				theMc.fontRenderer.drawString(teamInfo.map + "", i / 2 - 47 - theMc.fontRenderer.getStringWidth(teamInfo.map + ""), 9, 0x000000);
+				theMc.fontRenderer.drawString(teamInfo.map + "", i / 2 - 48 - theMc.fontRenderer.getStringWidth(teamInfo.map + ""), 8, 0xffffff);
 				
 				int secondsLeft = teamInfo.timeLeft / 20;
 				int minutesLeft = secondsLeft / 60;
 				secondsLeft = secondsLeft % 60;
 				String timeLeft = minutesLeft + ":" + (secondsLeft < 10 ? "0" + secondsLeft : secondsLeft);
-				mc.fontRenderer.drawString(timeLeft, i / 2 - mc.fontRenderer.getStringWidth(timeLeft) / 2 - 1, 29, 0x000000);
-				mc.fontRenderer.drawString(timeLeft, i / 2 - mc.fontRenderer.getStringWidth(timeLeft) / 2, 30, 0xffffff);
+				theMc.fontRenderer.drawString(timeLeft, i / 2 - theMc.fontRenderer.getStringWidth(timeLeft) / 2 - 1, 29, 0x000000);
+				theMc.fontRenderer.drawString(timeLeft, i / 2 - theMc.fontRenderer.getStringWidth(timeLeft) / 2, 30, 0xffffff);
 	
 				
 				GL11.glDepthMask(true);
@@ -295,12 +302,12 @@ public class TickHandlerClient
 				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 				String playerUsername = FlansModClient.minecraft.thePlayer.getCommandSenderName();
 				
-				mc.fontRenderer.drawString(teamInfo.getPlayerScoreData(playerUsername).score + "", i / 2 - 7, 1, 0x000000);
-				mc.fontRenderer.drawString(teamInfo.getPlayerScoreData(playerUsername).kills + "", i / 2 - 7, 9, 0x000000);
-				mc.fontRenderer.drawString(teamInfo.getPlayerScoreData(playerUsername).deaths + "", i / 2 - 7, 17, 0x000000);
+				theMc.fontRenderer.drawString(teamInfo.getPlayerScoreData(playerUsername).score + "", i / 2 - 7, 1, 0x000000);
+				theMc.fontRenderer.drawString(teamInfo.getPlayerScoreData(playerUsername).kills + "", i / 2 - 7, 9, 0x000000);
+				theMc.fontRenderer.drawString(teamInfo.getPlayerScoreData(playerUsername).deaths + "", i / 2 - 7, 17, 0x000000);
 			}
 			for (KillMessage killMessage : killMessages) {
-				mc.fontRenderer.drawString("\u00a7" + killMessage.killerName + "     " + "\u00a7" + killMessage.killedName, i - mc.fontRenderer.getStringWidth(killMessage.killerName + "     " + killMessage.killedName) - 6, j - 32 - killMessage.line * 16, 0xffffff);
+				theMc.fontRenderer.drawString("\u00a7" + killMessage.killerName + "     " + "\u00a7" + killMessage.killedName, i - theMc.fontRenderer.getStringWidth(killMessage.killerName + "     " + killMessage.killedName) - 6, j - 32 - killMessage.line * 16, 0xffffff);
 			}
 						
 			//Draw icons indicated weapons used
@@ -309,16 +316,16 @@ public class TickHandlerClient
 			GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240F, 240F);
 			for (KillMessage killMessage : killMessages) {
-				drawSlotInventory(mc.fontRenderer, new ItemStack(killMessage.weapon.item), i - mc.fontRenderer.getStringWidth("     " + killMessage.killedName) - 12, j - 36 - killMessage.line * 16);
+				drawSlotInventory(theMc.fontRenderer, new ItemStack(killMessage.weapon.item), i - theMc.fontRenderer.getStringWidth("     " + killMessage.killedName) - 12, j - 36 - killMessage.line * 16);
 			}
 			GL11.glDisable(3042 /*GL_BLEND*/);
 			RenderHelper.disableStandardItemLighting();
 			
 			//Off-hand weapon graphics
-			mc.renderEngine.bindTexture(offHand);
+			theMc.renderEngine.bindTexture(offHand);
 			
-			ItemStack currentStack = mc.thePlayer.inventory.getCurrentItem();
-			PlayerData data = PlayerHandler.getPlayerData(mc.thePlayer, Side.CLIENT);
+			ItemStack currentStack = theMc.thePlayer.inventory.getCurrentItem();
+			PlayerData data = PlayerHandler.getPlayerData(theMc.thePlayer, Side.CLIENT);
 			
 			if(currentStack != null && currentStack.getItem() instanceof ItemGun && ((ItemGun)currentStack.getItem()).type.oneHanded)
 			{
@@ -333,7 +340,7 @@ public class TickHandlerClient
 						tessellator.addVertexWithUV(i / 2 - 88 + 20 * n, j - 19, -90D, 16D / 64D, 0D / 32D);
 						tessellator.draw();
 					}
-					else if(data.isValidOffHandWeapon(mc.thePlayer, n + 1))
+					else if(data.isValidOffHandWeapon(theMc.thePlayer, n + 1))
 					{					
 						tessellator.startDrawingQuads();
 						tessellator.addVertexWithUV(i / 2 - 88 + 20 * n, j - 3, -90D, 0D / 64D, 16D / 32D);
@@ -346,27 +353,40 @@ public class TickHandlerClient
 			}
 			
 			//DEBUG vehicles
-			if(FlansMod.DEBUG && mc.thePlayer.ridingEntity instanceof EntitySeat)
+			if(FlansMod.DEBUG && theMc.thePlayer.ridingEntity instanceof EntitySeat)
 			{
-				EntityDriveable ent = ((EntitySeat)mc.thePlayer.ridingEntity).driveable;
-				mc.fontRenderer.drawString("MotionX : " + ent.motionX, 2, 2, 0xffffff);
-				mc.fontRenderer.drawString("MotionY : " + ent.motionY, 2, 12, 0xffffff);
-				mc.fontRenderer.drawString("MotionZ : " + ent.motionZ, 2, 22, 0xffffff);
-				mc.fontRenderer.drawString("Throttle : " + ent.throttle, 2, 32, 0xffffff);
-				mc.fontRenderer.drawString("Break Blocks : " + TeamsManager.driveablesBreakBlocks, 2, 42, 0xffffff);
+				EntityDriveable ent = ((EntitySeat)theMc.thePlayer.ridingEntity).driveable;
+				theMc.fontRenderer.drawString("MotionX : " + ent.motionX, 2, 2, 0xffffff);
+				theMc.fontRenderer.drawString("MotionY : " + ent.motionY, 2, 12, 0xffffff);
+				theMc.fontRenderer.drawString("MotionZ : " + ent.motionZ, 2, 22, 0xffffff);
+				theMc.fontRenderer.drawString("Throttle : " + ent.throttle, 2, 32, 0xffffff);
+				theMc.fontRenderer.drawString("Break Blocks : " + TeamsManager.driveablesBreakBlocks, 2, 42, 0xffffff);
 
 			}
 	    }
 	}
 
 	private void drawCrossHair(int width, int height,int offset){
-		theMc.getTextureManager().bindTexture(crossHair);
-		GL11.glEnable(GL11.GL_BLEND);
-		OpenGlHelper.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0);
-		theMc.ingameGUI.drawTexturedModalRect(width / 2 - 7, height / 2 - 7, 0, 0, 32*offset, 32);
-		OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-		GL11.glDisable(GL11.GL_BLEND);
+	    if (bindTexture(theMc.getTextureManager(),crossHair)) {
+            GL11.glEnable(GL11.GL_BLEND);
+            OpenGlHelper.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0);
+            theMc.ingameGUI.drawTexturedModalRect(width / 2 - 15, height / 2 - 15, 32*offset, 0, 32, 32);
+            OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+            GL11.glDisable(GL11.GL_BLEND);
+        }
 	}
+
+    private static boolean bindTexture(TextureManager manager,ResourceLocation resource) {
+        HashMap map = ObfuscationReflectionHelper.getPrivateValue(TextureManager.class,manager,"mapTextureObjects","field_110585_a","b");
+        Object object = map.get(resource);
+        if (object == null) {
+            object = new SimpleTexture(resource);
+            manager.loadTexture(resource, (ITextureObject)object);
+        }
+        boolean success = !object.equals(TextureUtil.missingTexture);
+        if (success) GL11.glBindTexture(GL11.GL_TEXTURE_2D, ((ITextureObject)object).getGlTextureId());
+        return success;
+    }
 
 	@SubscribeEvent
 	public void renderTick(TickEvent.RenderTickEvent event)
