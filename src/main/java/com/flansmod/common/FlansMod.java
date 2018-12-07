@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -161,7 +160,12 @@ public class FlansMod
 	public static CreativeTabFlan tabFlanGuns = new CreativeTabFlan(0), tabFlanDriveables = new CreativeTabFlan(1),
 			tabFlanParts = new CreativeTabFlan(2), tabFlanTeams = new CreativeTabFlan(3), tabFlanMechas = new CreativeTabFlan(4);
 
-	
+
+	public static String recoilMark = "Recoil";
+	public static String accuracyMark = "Accuracy";
+	public static String sneakingMark = "Sneaking";
+	public static String sprintingMark = "Sprinting";
+
 	/** The mod pre-initialiser method */
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event)
@@ -216,6 +220,8 @@ public class FlansMod
 		proxy.forceReload();
 						
 		log("Preinitializing complete.");
+
+		proxy.onPreInit(event);
 	}
 	
 	/** The mod initialiser method */
@@ -550,8 +556,12 @@ public class FlansMod
         //teamsConfigString = configFile.getString("Config String", Configuration.CATEGORY_GENERAL, teamsConfigString, "A String!");
         //teamsConfigBoolean = configFile.getBoolean("Config Boolean", Configuration.CATEGORY_GENERAL, teamsConfigBoolean, "A Boolean!");
 
-        if(configFile.hasChanged())
-            configFile.save();
+		recoilMark = configFile.getString("recoilMark", Configuration.CATEGORY_GENERAL, recoilMark,"Lore Recoil Keyword.");
+		accuracyMark = configFile.getString("accuracyMark", Configuration.CATEGORY_GENERAL, accuracyMark,"Lore Accuracy Keyword.");
+		sneakingMark = configFile.getString("sneakingMark", Configuration.CATEGORY_GENERAL, sneakingMark,"Lore Sneaking Keyword.");
+		sprintingMark = configFile.getString("sprintingMark", Configuration.CATEGORY_GENERAL, sprintingMark,"Lore Sprinting Keyword.");
+
+        if(configFile.hasChanged()) configFile.save();
     }
 
 	//TODO : Proper logger

@@ -380,7 +380,7 @@ public class ItemGun extends Item implements IFlanItem
 				int pumpDelay = gunType.model == null ? 0 : gunType.model.pumpDelay;
 				int pumpTime = gunType.model == null ? 1 : gunType.model.pumpTime;
 				animations.doShoot(pumpDelay, pumpTime);
-				FlansModClient.playerRecoil += gunType.getRecoil(stack);
+				FlansModClient.playerRecoil += gunType.getRecoil(stack,player);
 				if(left)
 					FlansModClient.shootTimeLeft = gunType.shootDelay;
 				else FlansModClient.shootTimeRight = gunType.shootDelay;
@@ -947,7 +947,8 @@ public class ItemGun extends Item implements IFlanItem
 			
 			for (int k = 0; k < gunType.numBullets; k++)
 			{
-				world.spawnEntityInWorld(((ItemShootable)bulletStack.getItem()).getEntity(world, entityplayer, (entityplayer.isSneaking() ? 0.7F : 1F) * gunType.getSpread(stack), gunType.getDamage(stack), gunType.getBulletSpeed(stack), gunType.numBullets > 1,bulletStack.getItemDamage(), gunType));
+				world.spawnEntityInWorld(((ItemShootable)bulletStack.getItem()).getEntity(world, entityplayer,
+						(entityplayer.isSneaking() ? 0.7F : 1F) * gunType.getSpread(stack,entityplayer), gunType.getDamage(stack), gunType.getBulletSpeed(stack), gunType.numBullets > 1,bulletStack.getItemDamage(), gunType));
 			}
 			// Drop item on shooting if bullet requires it
 			if(bullet.dropItemOnShoot != null && !entityplayer.capabilities.isCreativeMode)

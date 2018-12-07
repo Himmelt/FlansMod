@@ -374,11 +374,11 @@ public class TickHandlerClient
 
 	private boolean drawCrossHair(int screenWidth, int screenHeight,int offset){
 		if (bindTexture(theMc.getTextureManager(),crossHair)) {
-            GL11.glEnable(GL11.GL_BLEND);
-            OpenGlHelper.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0);
-            drawNonStandardTexturedRect(screenWidth / 2 - 15, screenHeight / 2 - 15, 32*offset, 0, 32, 32, 96, 32);
-			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-            GL11.glDisable(GL11.GL_BLEND);
+            //GL11.glEnable(GL11.GL_BLEND);
+            //OpenGlHelper.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0);
+            drawNonStandardTexturedRect(screenWidth / 2 - 127, screenHeight / 2 - 127, 256*offset, 0, 256, 256, 768, 256);
+			//OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+            //GL11.glDisable(GL11.GL_BLEND);
             return true;
         }else return false;
 	}
