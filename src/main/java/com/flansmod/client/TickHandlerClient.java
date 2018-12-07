@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.flansmod.client.handler.ClientFMLHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.SimpleTexture;
@@ -101,7 +102,7 @@ public class TickHandlerClient
 				int width = event.resolution.getScaledWidth();
 				int height = event.resolution.getScaledHeight();
 				theMc.thePlayer.getHeldItem();
-				if (theMc.thePlayer.isSneaking()) {
+				if (ClientFMLHandler.isSneaking) {
 					success = drawCrossHair(width,height,0);
 				} else if (theMc.thePlayer.isSprinting()) {
 					success = drawCrossHair(width,height,2);
