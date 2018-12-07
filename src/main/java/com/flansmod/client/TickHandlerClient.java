@@ -94,22 +94,28 @@ public class TickHandlerClient
 		//Remove crosshairs if looking down the sights of a gun
         if(event.type == ElementType.CROSSHAIRS && crossHair != null)
         {
-			event.setCanceled(true);
 			// if not looking down the sights of a gun
 			if (FlansModClient.currentScope == null) {
 				// 没有开瞄准镜，就渲染自定义准星
+				boolean success;
 				int width = event.resolution.getScaledWidth();
 				int height = event.resolution.getScaledHeight();
 				theMc.thePlayer.getHeldItem();
 				if (theMc.thePlayer.isSneaking()) {
-					drawCrossHair(width,height,0);
+					success = drawCrossHair(width,height,0);
 				} else if (theMc.thePlayer.isSprinting()) {
-					drawCrossHair(width,height,2);
+					success = drawCrossHair(width,height,2);
 				} else {
-					drawCrossHair(width,height,1);
+					success = drawCrossHair(width,height,1);
 				}
+				if (success) {
+					event.setCanceled(true);
+					return;
+				}
+			} else {
+				event.setCanceled(true);
+				return;
 			}
-			return;
         }
 		
 		ScaledResolution scaledresolution = new ScaledResolution(FlansModClient.minecraft, FlansModClient.minecraft.displayWidth, FlansModClient.minecraft.displayHeight);
@@ -366,24 +372,38 @@ public class TickHandlerClient
 	    }
 	}
 
-	private void drawCrossHair(int width, int height,int offset){
-	    if (bindTexture(theMc.getTextureManager(),crossHair)) {
+	private boolean drawCrossHair(int screenWidth, int screenHeight,int offset){
+		if (bindTexture(theMc.getTextureManager(),crossHair)) {
             GL11.glEnable(GL11.GL_BLEND);
             OpenGlHelper.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0);
-            theMc.ingameGUI.drawTexturedModalRect(width / 2 - 15, height / 2 - 15, 32*offset, 0, 32, 32);
-            OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+            drawNonStandardTexturedRect(screenWidth / 2 - 15, screenHeight / 2 - 15, 32*offset, 0, 32, 32, 96, 32);
+			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
             GL11.glDisable(GL11.GL_BLEND);
-        }
+            return true;
+        }else return false;
+	}
+
+	public void drawNonStandardTexturedRect(int screenX, int screenY, int textureU, int textureV, int width, int height, int textureWidth, int textureHeight) {
+		double f = 1F / (double) textureWidth;
+		double f1 = 1F / (double) textureHeight;
+		Tessellator tessellator = Tessellator.instance;
+		tessellator.startDrawingQuads();
+		tessellator.addVertexWithUV(screenX, screenY + height, 0, textureU * f, (textureV + height) * f1);
+		tessellator.addVertexWithUV(screenX + width, screenY + height, 0, (textureU + width) * f, (textureV + height) * f1);
+		tessellator.addVertexWithUV(screenX + width, screenY, 0, (textureU + width) * f, textureV * f1);
+		tessellator.addVertexWithUV(screenX, screenY, 0, textureU * f, textureV * f1);
+		tessellator.draw();
 	}
 
     private static boolean bindTexture(TextureManager manager,ResourceLocation resource) {
         HashMap map = ObfuscationReflectionHelper.getPrivateValue(TextureManager.class,manager,"mapTextureObjects","field_110585_a","b");
         Object object = map.get(resource);
+        boolean success = true;
         if (object == null) {
             object = new SimpleTexture(resource);
-            manager.loadTexture(resource, (ITextureObject)object);
+           	success = manager.loadTexture(resource, (ITextureObject)object);
         }
-        boolean success = !object.equals(TextureUtil.missingTexture);
+        success = success && object != TextureUtil.missingTexture;
         if (success) GL11.glBindTexture(GL11.GL_TEXTURE_2D, ((ITextureObject)object).getGlTextureId());
         return success;
     }
