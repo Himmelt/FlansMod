@@ -3,7 +3,6 @@ package com.flansmod.common.guns;
 import com.flansmod.client.FlansModClient;
 import com.flansmod.client.debug.EntityDebugDot;
 import com.flansmod.common.FlansMod;
-import com.flansmod.common.PlayerData;
 import com.flansmod.common.PlayerHandler;
 import com.flansmod.common.driveables.EntityDriveable;
 import com.flansmod.common.driveables.EntityPlane;
@@ -12,7 +11,6 @@ import com.flansmod.common.driveables.EntityVehicle;
 import com.flansmod.common.driveables.mechas.EntityMecha;
 import com.flansmod.common.guns.raytracing.*;
 import com.flansmod.common.network.PacketFlak;
-import com.flansmod.common.teams.Team;
 import com.flansmod.common.teams.TeamsManager;
 import com.flansmod.common.types.InfoType;
 import com.flansmod.common.vector.Vector3f;
@@ -73,7 +71,7 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
     public EntityBullet(World world) {
         super(world);
         ticksInAir = 0;
-        setSize(0.5F, 0.5F);
+        setSize(1.5F, 1.5F);
     }
 
     /**
@@ -88,7 +86,7 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
         damage = gunDamage;
         if (type != null) {
             penetratingPower = type.penetratingPower;
-            setSize(type.hitBoxSize, type.hitBoxSize);
+            //setSize(type.hitBoxSize, type.hitBoxSize);
         }
     }
 
@@ -231,13 +229,23 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 
         float speed = motion.length();
 
+        double time = Math.max(Math.abs(motionX), Math.max(Math.abs(motionY), Math.abs(motionZ))) / Math.min(width, height);
+        double unitX = motionX / time;
+        double unitY = motionY / time;
+        double unitZ = motionZ / time;
+
+        System.out.println("Motion:time:" + time);
+        System.out.println("Motion:motionX:" + motionX);
+        System.out.println("Motion:motionY:" + motionY);
+        System.out.println("Motion:motionZ:" + motionZ);
+
         //Iterate over all entities
         for (int i = 0; i < worldObj.loadedEntityList.size(); i++) {
-            Object obj = worldObj.loadedEntityList.get(i);
+            Entity entity = (Entity) worldObj.loadedEntityList.get(i);
 
             //Get driveables
-            if (obj instanceof EntityDriveable) {
-                EntityDriveable driveable = (EntityDriveable) obj;
+            if (entity instanceof EntityDriveable) {
+                EntityDriveable driveable = (EntityDriveable) entity;
 
                 if (driveable.isDead() || driveable.isPartOfThis(owner)) continue;
 
@@ -247,10 +255,18 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
                     ArrayList<BulletHit> driveableHits = driveable.attackFromBullet(origin, motion);
                     hits.addAll(driveableHits);
                 }
+            } else if ((entity instanceof EntityLivingBase || entity instanceof EntityAAGun || entity instanceof EntityGrenade) && entity != this && entity != owner && !entity.isDead) {
+                for (int j = 0; j <= time; j++) {
+                    if (boundingBox.getOffsetBoundingBox(j * unitX, j * unitY, j * unitZ).intersectsWith(entity.boundingBox)) {
+                        double distance = Vec3.createVectorHelper(posX + j * unitX, posY + j * unitY, posZ + j * unitZ)
+                                .distanceTo(Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ));
+                        hits.add(new EntityHit(entity, (float) (distance / (distance + 1.0))));
+                        break;
+                    }
+                }
             }
-
             //Get players
-            else if (obj instanceof EntityPlayer) {
+/*            else if (obj instanceof EntityPlayer) {
                 EntityPlayer player = (EntityPlayer) obj;
                 PlayerData data = PlayerHandler.getPlayerData(player);
                 boolean shouldDoNormalHitDetect = false;
@@ -324,7 +340,7 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
                         hits.add(new EntityHit(entity, 0.01F));
                     }
                 }
-            }
+            }*/
         }
 
         //Ray trace the bullet by comparing its next position to its current position
@@ -576,11 +592,9 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 
     @Override
     public void setDead() {
-        if (isDead)
-            return;
+        if (isDead) return;
         super.setDead();
-        if (worldObj.isRemote)
-            return;
+        if (worldObj.isRemote) return;
         if (type.explosionRadius > 0) {
             if (owner instanceof EntityPlayer)
                 new FlansModExplosion(worldObj, this, (EntityPlayer) owner, firedFrom, posX, posY, posZ, type.explosionRadius, TeamsManager.explosions);
@@ -598,8 +612,9 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
             }
         }
         //Send flak packet
-        if (type.flak > 0)
+        if (type.flak > 0) {
             FlansMod.getPacketHandler().sendToAllAround(new PacketFlak(posX, posY, posZ, type.flak, type.flakParticles), posX, posY, posZ, 200, dimension);
+        }
         // Drop item on hitting if bullet requires it
         if (type.dropItemOnHit != null) {
             String itemName = type.dropItemOnHit;

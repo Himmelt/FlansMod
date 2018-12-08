@@ -721,7 +721,7 @@ public class GunType extends InfoType implements IScope {
                                     stackSpread *= 1.0D - Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                     break;
                                 }
-                            } else if (matcher.find()) {
+                            } else if (!sprinting && !sneaking && matcher.find()) {
                                 stackSpread *= 1.0D - Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                 break;
                             }
@@ -755,16 +755,16 @@ public class GunType extends InfoType implements IScope {
                             Matcher matcher = NUMBER_PATTERN.matcher(line);
                             if (line.contains(FlansMod.sneakingMark)) {
                                 if (sneaking && matcher.find()) {
-                                    stackRecoil *= Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D + 1.0D;
+                                    stackRecoil *= 1.0D + Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                     break;
                                 }
                             } else if (line.contains(FlansMod.sprintingMark)) {
                                 if (sprinting && matcher.find()) {
-                                    stackRecoil *= Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D + 1.0D;
+                                    stackRecoil *= 1.0D + Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                     break;
                                 }
-                            } else if (matcher.find()) {
-                                stackRecoil *= Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D + 1.0D;
+                            } else if (!sprinting && !sneaking && matcher.find()) {
+                                stackRecoil *= 1.0D + Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                 break;
                             }
                         }
