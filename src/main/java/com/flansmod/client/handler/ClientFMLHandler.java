@@ -12,11 +12,12 @@ public class ClientFMLHandler {
         String content = event.packet.payload().toString(StandardCharsets.UTF_8);
         if (event.packet.channel().equals("flansmod")) {
             String[] ss = content.split("\\|");
-            if (ss.length == 4) {
+            if (ss.length == 5) {
                 FlansMod.recoilMark = ss[0];
                 FlansMod.accuracyMark = ss[1];
-                FlansMod.sneakingMark = ss[2];
-                FlansMod.sprintingMark = ss[3];
+                FlansMod.shootDelayMark = ss[2];
+                FlansMod.sneakingMark = ss[3];
+                FlansMod.sprintingMark = ss[4];
             }
         }
     }

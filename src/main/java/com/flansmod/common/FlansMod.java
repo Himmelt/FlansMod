@@ -121,6 +121,7 @@ public class FlansMod {
 
     public static String recoilMark = "Recoil";
     public static String accuracyMark = "Accuracy";
+    public static String shootDelayMark = "ShootDelay";
     public static String sneakingMark = "Sneaking";
     public static String sprintingMark = "Sprinting";
 
@@ -508,6 +509,7 @@ public class FlansMod {
 
         recoilMark = configFile.getString("recoilMark", Configuration.CATEGORY_GENERAL, recoilMark, "Lore Recoil Keyword.");
         accuracyMark = configFile.getString("accuracyMark", Configuration.CATEGORY_GENERAL, accuracyMark, "Lore Accuracy Keyword.");
+        shootDelayMark = configFile.getString("shootDelayMark", Configuration.CATEGORY_GENERAL, shootDelayMark, "Lore ShootDelay Keyword.");
         sneakingMark = configFile.getString("sneakingMark", Configuration.CATEGORY_GENERAL, sneakingMark, "Lore Sneaking Keyword.");
         sprintingMark = configFile.getString("sprintingMark", Configuration.CATEGORY_GENERAL, sprintingMark, "Lore Sprinting Keyword.");
 

@@ -50,7 +50,11 @@ public class FMLEventHandler {
             EntityPlayerMP player = (EntityPlayerMP) event.player;
             if (player.mcServer.isDedicatedServer()) {
                 ByteBuf buf = Unpooled.buffer();
-                String content = FlansMod.recoilMark + "|" + FlansMod.accuracyMark + "|" + FlansMod.sneakingMark + "|" + FlansMod.sprintingMark;
+                String content = FlansMod.recoilMark + "|"
+                        + FlansMod.accuracyMark + "|"
+                        + FlansMod.shootDelayMark + "|"
+                        + FlansMod.sneakingMark + "|"
+                        + FlansMod.sprintingMark;
                 buf.writeBytes(content.getBytes(StandardCharsets.UTF_8));
                 proxy.sendTo(player, buf);
             }

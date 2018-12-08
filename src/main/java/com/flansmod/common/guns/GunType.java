@@ -1,6 +1,5 @@
 package com.flansmod.common.guns;
 
-import com.flansmod.client.handler.ClientFMLHandler;
 import com.flansmod.client.model.ModelGun;
 import com.flansmod.client.model.ModelMG;
 import com.flansmod.common.FlansMod;
@@ -287,7 +286,6 @@ public class GunType extends InfoType implements IScope {
      */
     public float knockbackModifier = 0F;
 
-    private static final char COLOR_CHAR = '\u00A7';
     private static final Pattern COLOR_PATTERN = Pattern.compile("(?i)\\u00A7[0-9A-FK-OR]");
     private static final Pattern NUMBER_PATTERN = Pattern.compile("[+-]?[0-9]+(.\\d+)?%");
 
@@ -699,8 +697,7 @@ public class GunType extends InfoType implements IScope {
         for (AttachmentType attachment : getCurrentAttachments(stack)) {
             stackSpread *= attachment.spreadMultiplier;
         }
-
-        if (player != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
+        if (player != null && stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
             NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
             if (display.hasKey("Lore", 9)) {
                 NBTTagList list = display.getTagList("Lore", 8);
@@ -742,7 +739,7 @@ public class GunType extends InfoType implements IScope {
         for (AttachmentType attachment : getCurrentAttachments(stack)) {
             stackRecoil *= attachment.recoilMultiplier;
         }
-        if (player != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
+        if (player != null && stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
             NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
             if (display.hasKey("Lore", 9)) {
                 NBTTagList list = display.getTagList("Lore", 8);
@@ -784,7 +781,43 @@ public class GunType extends InfoType implements IScope {
         for (AttachmentType attachment : getCurrentAttachments(stack)) {
             stackBulletSpeed *= attachment.bulletSpeedMultiplier;
         }
-        return stackBulletSpeed;
+        return stackBulletSpeed < 0 ? 0 : stackBulletSpeed;
+    }
+
+    public int getShootDelay(ItemStack stack, EntityPlayer player) {
+        float stackShootDelay = shootDelay;
+        if (player != null && stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
+            NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
+            if (display.hasKey("Lore", 9)) {
+                NBTTagList list = display.getTagList("Lore", 8);
+                boolean sneaking = FMLEventHandler.isSneaking(player.getUniqueID());
+                boolean sprinting = player.isSprinting();
+                for (int i = 0; i < list.tagCount(); i++) {
+                    String line = list.getStringTagAt(i);
+                    if (line != null && !line.isEmpty()) {
+                        line = COLOR_PATTERN.matcher(line).replaceAll("");
+                        if (line.contains(FlansMod.shootDelayMark)) {
+                            Matcher matcher = NUMBER_PATTERN.matcher(line);
+                            if (line.contains(FlansMod.sneakingMark)) {
+                                if (sneaking && matcher.find()) {
+                                    stackShootDelay *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (line.contains(FlansMod.sprintingMark)) {
+                                if (sprinting && matcher.find()) {
+                                    stackShootDelay *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (!sprinting && !sneaking && matcher.find()) {
+                                stackShootDelay *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return stackShootDelay < 0 ? 0 : Math.round(stackShootDelay);
     }
 
     /**
