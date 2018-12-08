@@ -18,6 +18,4 @@ public class BulletHit implements Comparable<BulletHit> {
             return 1;
         return 0;
     }
-
-
 }
