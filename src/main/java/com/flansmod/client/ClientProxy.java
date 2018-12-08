@@ -34,6 +34,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
+import org.apache.logging.log4j.Level;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -100,30 +101,34 @@ public class ClientProxy extends CommonProxy {
      */
     @Override
     public List<File> getContentList(Method method, ClassLoader classloader) {
-        contentPacks = new ArrayList<File>();
-        for (File file : FlansMod.flanDir.listFiles()) {
-            if (file.isDirectory() || zipJar.matcher(file.getName()).matches()) {
-                try {
-                    method.invoke(classloader, file.toURI().toURL());
+        contentPacks = new ArrayList<>();
+        if (FlansMod.flanDir != null) {
+            File[] files = FlansMod.flanDir.listFiles();
+            if (files != null && files.length > 0) {
+                for (File file : files) {
+                    if (file.isDirectory() || zipJar.matcher(file.getName()).matches()) {
+                        try {
+                            method.invoke(classloader, file.toURI().toURL());
 
-                    HashMap<String, Object> map = new HashMap<String, Object>();
-                    map.put("modid", "FlansMod");
-                    map.put("name", "Flan's Mod : " + file.getName());
-                    map.put("version", "1");
-                    FMLModContainer container = new FMLModContainer("com.flansmod.common.FlansMod", new ModCandidate(file, file, file.isDirectory() ? ContainerType.DIR : ContainerType.JAR), map);
-                    container.bindMetadata(MetadataCollection.from(null, ""));
-                    FMLClientHandler.instance().addModAsResource(container);
+                            HashMap<String, Object> map = new HashMap<>();
+                            map.put("modid", "FlansMod");
+                            map.put("name", "Flan's Mod : " + file.getName());
+                            map.put("version", "1");
+                            FMLModContainer container = new FMLModContainer("com.flansmod.common.FlansMod", new ModCandidate(file, file, file.isDirectory() ? ContainerType.DIR : ContainerType.JAR), map);
+                            container.bindMetadata(MetadataCollection.from(null, ""));
+                            FMLClientHandler.instance().addModAsResource(container);
 
-                } catch (Exception e) {
-                    FlansMod.log("Failed to load images for content pack : " + file.getName());
-                    e.printStackTrace();
+                        } catch (Exception e) {
+                            FlansMod.log(Level.WARN, "Failed to load images for content pack : " + file.getName());
+                            FlansMod.log(Level.WARN, e.getMessage());
+                        }
+                        // Add the directory to the content pack list
+                        FlansMod.log("Loaded content pack : " + file.getName());
+                        contentPacks.add(file);
+                    }
                 }
-                // Add the directory to the content pack list
-                FlansMod.log("Loaded content pack : " + file.getName());
-                contentPacks.add(file);
             }
         }
-
         FlansMod.log("Loaded textures and models.");
         return contentPacks;
     }
@@ -248,11 +253,11 @@ public class ClientProxy extends CommonProxy {
             return "Model" + in;
             //Otherwise, we need to slightly rearrange the wording of the string for it to make sense
         else if (split.length > 1) {
-            String out = "Model" + split[split.length - 1];
+            StringBuilder out = new StringBuilder("Model" + split[split.length - 1]);
             for (int i = split.length - 2; i >= 0; i--) {
-                out = split[i] + "." + out;
+                out.insert(0, split[i] + ".");
             }
-            return out;
+            return out.toString();
         }
         return in;
     }
@@ -267,8 +272,8 @@ public class ClientProxy extends CommonProxy {
         try {
             return typeClass.cast(Class.forName(modelDir + getModelName(s)).getConstructor().newInstance());
         } catch (Exception e) {
-            FlansMod.log("Failed to load model : " + shortName + " (" + s + ")");
-            e.printStackTrace();
+            FlansMod.log(Level.WARN, "Failed to load model : " + shortName + " (" + s + ")");
+            FlansMod.log(Level.WARN, e.getMessage());
         }
         return null;
     }

@@ -14,6 +14,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.types.IFlanItem;
 import com.flansmod.common.types.InfoType;
+import org.apache.logging.log4j.Level;
 
 public class ItemMechaAddon extends Item implements IFlanItem
 {
@@ -25,7 +26,11 @@ public class ItemMechaAddon extends Item implements IFlanItem
 		setMaxStackSize(1);
 		type.item = this;
 		setCreativeTab(FlansMod.tabFlanMechas);
-		GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		try {
+			GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		} catch (Throwable e) {
+			FlansMod.log(Level.WARN, e.getMessage());
+		}
 	}
 	
 	@Override

@@ -13,6 +13,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.types.IFlanItem;
 import com.flansmod.common.types.InfoType;
+import org.apache.logging.log4j.Level;
 
 public class ItemPart extends Item implements IFlanItem
 {
@@ -31,7 +32,11 @@ public class ItemPart extends Item implements IFlanItem
 		type.item = this;
 		setTextureName("FlansMod:" + type.iconPath);
 		setCreativeTab(FlansMod.tabFlanParts);
-		GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		try {
+			GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		} catch (Throwable e) {
+			FlansMod.log(Level.WARN, e.getMessage());
+		}
 	}
 	
 	@Override

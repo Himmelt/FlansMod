@@ -4,6 +4,7 @@ import com.flansmod.common.FlansMod;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent;
+import net.minecraft.client.Minecraft;
 
 import java.nio.charset.StandardCharsets;
 
@@ -13,22 +14,26 @@ public class ClientFMLHandler {
     private static boolean temp = false;
     private static long last = 0;
 
+    private final Minecraft mc = Minecraft.getMinecraft();
+
     @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        boolean sneak = event.player.isSneaking();
-        if (!sneak) {
-            temp = false;
-            isSneaking = false;
-            last = System.currentTimeMillis();
-            return;
-        }
-        if (!temp) {
-            temp = true;
-            last = System.currentTimeMillis();
-            return;
-        }
-        if (isSneaking || System.currentTimeMillis() - last >= 2000) {
-            isSneaking = true;
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer != null) {
+            boolean sneak = mc.thePlayer.isSneaking();
+            if (!sneak) {
+                temp = false;
+                isSneaking = false;
+                last = System.currentTimeMillis();
+                return;
+            }
+            if (!temp) {
+                temp = true;
+                last = System.currentTimeMillis();
+                return;
+            }
+            if (isSneaking || System.currentTimeMillis() - last >= 2000) {
+                isSneaking = true;
+            }
         }
     }
 

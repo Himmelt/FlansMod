@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.logging.log4j.Level;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -85,7 +86,11 @@ public class ItemGun extends Item implements IFlanItem
 		type.item = this;
 		setMaxDamage(type.numAmmoItemsInGun);
 		setCreativeTab(FlansMod.tabFlanGuns);
-		GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		try {
+			GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		} catch (Throwable e) {
+			FlansMod.log(Level.WARN, e.getMessage());
+		}
 	}
 	
 	@Override

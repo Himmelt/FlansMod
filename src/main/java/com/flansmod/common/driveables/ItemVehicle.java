@@ -31,6 +31,7 @@ import com.flansmod.common.parts.PartType;
 import com.flansmod.common.types.EnumType;
 import com.flansmod.common.types.IFlanItem;
 import com.flansmod.common.types.InfoType;
+import org.apache.logging.log4j.Level;
 
 public class ItemVehicle extends ItemMapBase implements IFlanItem
 {
@@ -42,7 +43,11 @@ public class ItemVehicle extends ItemMapBase implements IFlanItem
 		type = type1;
 		type.item = this;
 		setCreativeTab(FlansMod.tabFlanDriveables);
-		GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		try {
+			GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		} catch (Throwable e) {
+			FlansMod.log(Level.WARN, e.getMessage());
+		}
     }
 
 	@Override

@@ -26,6 +26,7 @@ import com.flansmod.common.driveables.DriveablePart;
 import com.flansmod.common.driveables.EntityDriveable;
 import com.flansmod.common.network.PacketFlak;
 import com.flansmod.common.vector.Vector3f;
+import org.apache.logging.log4j.Level;
 
 public class ItemTool extends ItemFood 
 {
@@ -46,7 +47,11 @@ public class ItemTool extends ItemFood
 			if(type.healDriveables)
 				setCreativeTab(FlansMod.tabFlanDriveables);
 		}
-		GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		try {
+			GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		} catch (Throwable e) {
+			FlansMod.log(Level.WARN, e.getMessage());
+		}
     }
     
 	@Override

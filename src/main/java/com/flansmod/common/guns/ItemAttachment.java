@@ -3,7 +3,6 @@ package com.flansmod.common.guns;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.types.IFlanItem;
 import com.flansmod.common.types.InfoType;
-import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -11,6 +10,7 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import org.apache.logging.log4j.Level;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +26,7 @@ public class ItemAttachment extends Item implements IFlanItem {
         try {
             GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
         } catch (Throwable e) {
-            FMLLog.info("The name " + type.shortName + " has been registered twice.");
+            FlansMod.log(Level.WARN, e.getMessage());
         }
     }
 

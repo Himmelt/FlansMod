@@ -26,6 +26,7 @@ import com.flansmod.common.FlansMod;
 import com.flansmod.common.types.IFlanItem;
 import com.flansmod.common.types.InfoType;
 import com.google.common.collect.Multimap;
+import org.apache.logging.log4j.Level;
 
 public class ItemTeamArmour extends ItemArmor implements ISpecialArmor, IFlanItem
 {
@@ -38,7 +39,11 @@ public class ItemTeamArmour extends ItemArmor implements ISpecialArmor, IFlanIte
 		type = t;
 		type.item = this;
 		setCreativeTab(FlansMod.tabFlanTeams);
-		GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		try {
+			GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		} catch (Throwable e) {
+			FlansMod.log(Level.WARN, e.getMessage());
+		}
 	}
 	
 	public ItemTeamArmour(ItemArmor.ArmorMaterial armorMaterial, int renderIndex, int armourType) 

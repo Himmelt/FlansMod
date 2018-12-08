@@ -18,10 +18,10 @@ import com.flansmod.common.types.TypeFile;
 
 public class PlayerClass extends InfoType
 {
-	public static List<PlayerClass> classes = new ArrayList<PlayerClass>();
+	public static List<PlayerClass> classes = new ArrayList<>();
 	
-	public List<String[]> startingItemStrings = new ArrayList<String[]>();
-	public List<ItemStack> startingItems = new ArrayList<ItemStack>();
+	public List<String[]> startingItemStrings = new ArrayList<>();
+	public List<ItemStack> startingItems = new ArrayList<>();
 	public boolean horse = false;
 	
 	/** Override armour. If this is set, then it will override the team armour */

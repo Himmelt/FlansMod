@@ -9,6 +9,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.Item;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.Level;
 
 public abstract class ItemShootable extends Item 
 {
@@ -19,7 +20,11 @@ public abstract class ItemShootable extends Item
 		type = t;
 		maxStackSize = type.maxStackSize;
 		setMaxDamage(type.roundsPerItem);
-		GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		try {
+			GameRegistry.registerItem(this, type.shortName, FlansMod.MODID);
+		} catch (Throwable e) {
+			FlansMod.log(Level.WARN, e.getMessage());
+		}
 	}
 	
 	//Can be overriden to allow new types of bullets to be created, for planes
