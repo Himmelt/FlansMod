@@ -52,7 +52,7 @@ public class BulletType extends ShootableType {
     /**
      * The static bullets list
      */
-    public static List<BulletType> bullets = new ArrayList<BulletType>();
+    public static List<BulletType> bullets = new ArrayList<>();
 
     public BulletType(TypeFile file) {
         super(file);

@@ -4,6 +4,7 @@ import com.flansmod.client.handler.ClientFMLHandler;
 import com.flansmod.client.model.ModelGun;
 import com.flansmod.client.model.ModelMG;
 import com.flansmod.common.FlansMod;
+import com.flansmod.common.eventhandlers.FMLEventHandler;
 import com.flansmod.common.types.InfoType;
 import com.flansmod.common.types.TypeFile;
 import com.flansmod.common.vector.Vector3f;
@@ -703,7 +704,7 @@ public class GunType extends InfoType implements IScope {
             NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
             if (display.hasKey("Lore", 9)) {
                 NBTTagList list = display.getTagList("Lore", 8);
-                boolean sneaking = ClientFMLHandler.isSneaking;
+                boolean sneaking = FMLEventHandler.isSneaking(player.getUniqueID());
                 boolean sprinting = player.isSprinting();
                 for (int i = 0; i < list.tagCount(); i++) {
                     String line = list.getStringTagAt(i);
@@ -745,7 +746,7 @@ public class GunType extends InfoType implements IScope {
             NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
             if (display.hasKey("Lore", 9)) {
                 NBTTagList list = display.getTagList("Lore", 8);
-                boolean sneaking = ClientFMLHandler.isSneaking;
+                boolean sneaking = FMLEventHandler.isSneaking(player.getUniqueID());
                 boolean sprinting = player.isSprinting();
                 for (int i = 0; i < list.tagCount(); i++) {
                     String line = list.getStringTagAt(i);

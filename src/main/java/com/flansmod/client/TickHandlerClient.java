@@ -1,7 +1,6 @@
 package com.flansmod.client;
 
 import com.flansmod.client.gui.GuiTeamScores;
-import com.flansmod.client.handler.ClientFMLHandler;
 import com.flansmod.client.model.RenderFlag;
 import com.flansmod.client.model.RenderGun;
 import com.flansmod.common.FlansMod;
@@ -10,6 +9,7 @@ import com.flansmod.common.PlayerHandler;
 import com.flansmod.common.driveables.EntityDriveable;
 import com.flansmod.common.driveables.EntitySeat;
 import com.flansmod.common.driveables.mechas.EntityMecha;
+import com.flansmod.common.eventhandlers.FMLEventHandler;
 import com.flansmod.common.guns.AttachmentType;
 import com.flansmod.common.guns.EntityBullet;
 import com.flansmod.common.guns.GunType;
@@ -98,7 +98,7 @@ public class TickHandlerClient {
                 int width = event.resolution.getScaledWidth();
                 int height = event.resolution.getScaledHeight();
                 theMc.thePlayer.getHeldItem();
-                if (ClientFMLHandler.isSneaking) {
+                if (FMLEventHandler.isSneaking(theMc.thePlayer.getUniqueID())) {
                     success = drawCrossHair(width, height, 0);
                 } else if (theMc.thePlayer.isSprinting()) {
                     success = drawCrossHair(width, height, 2);

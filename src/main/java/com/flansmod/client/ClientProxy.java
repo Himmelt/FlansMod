@@ -372,6 +372,7 @@ public class ClientProxy extends CommonProxy {
     }
 
     public void onPreInit(FMLPreInitializationEvent event) {
+        super.onPreInit(event);
         FMLCommonHandler.instance().bus().register(new ClientFMLHandler());
         flanChannel.register(new ClientFMLHandler());
     }

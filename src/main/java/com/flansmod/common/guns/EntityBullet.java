@@ -215,7 +215,7 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 
         //Check the fuse to see if the bullet should explode
         ticksInAir++;
-        if (ticksInAir > type.fuse && type.fuse > 0 && !isDead) setDead();
+        if (type == null || ticksInAir > type.fuse && type.fuse > 0 && !isDead) setDead();
 
         if (ticksExisted > bulletLife) setDead();
 
@@ -590,12 +590,12 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
         if (isDead) return;
         super.setDead();
         if (worldObj.isRemote) return;
-        if (type.explosionRadius > 0) {
+        if (type != null && type.explosionRadius > 0) {
             if (owner instanceof EntityPlayer)
                 new FlansModExplosion(worldObj, this, (EntityPlayer) owner, firedFrom, posX, posY, posZ, type.explosionRadius, TeamsManager.explosions);
             else worldObj.createExplosion(this, posX, posY, posZ, type.explosionRadius, TeamsManager.explosions);
         }
-        if (type.fireRadius > 0) {
+        if (type != null && type.fireRadius > 0) {
             for (float i = -type.fireRadius; i < type.fireRadius; i++) {
                 for (float k = -type.fireRadius; k < type.fireRadius; k++) {
                     for (int j = -1; j < 1; j++) {
@@ -607,11 +607,11 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
             }
         }
         //Send flak packet
-        if (type.flak > 0) {
+        if (type != null && type.flak > 0) {
             FlansMod.getPacketHandler().sendToAllAround(new PacketFlak(posX, posY, posZ, type.flak, type.flakParticles), posX, posY, posZ, 200, dimension);
         }
         // Drop item on hitting if bullet requires it
-        if (type.dropItemOnHit != null) {
+        if (type != null && type.dropItemOnHit != null) {
             String itemName = type.dropItemOnHit;
             int damage = 0;
             if (itemName.contains(".")) {
@@ -625,23 +625,23 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
 
     @Override
     public void writeEntityToNBT(NBTTagCompound tag) {
-        tag.setString("type", type.shortName);
-        if (owner == null)
-            tag.setString("owner", "null");
-        else
-            tag.setString("owner", owner.getCommandSenderName());
+        if (tag != null) {
+            tag.setString("type", type.shortName);
+            if (owner == null) tag.setString("owner", "null");
+            else tag.setString("owner", owner.getCommandSenderName());
+        }
     }
 
     @Override
     public void readEntityFromNBT(NBTTagCompound tag) {
-        String typeString = tag.getString("type");
-        String ownerName = tag.getString("owner");
-
-        if (typeString != null)
-            type = BulletType.getBullet(typeString);
-
-        if (ownerName != null && !ownerName.equals("null"))
-            owner = FMLCommonHandler.instance().getMinecraftServerInstance().getConfigurationManager().func_152612_a(ownerName);
+        if (tag != null) {
+            String typeString = tag.getString("type");
+            String ownerName = tag.getString("owner");
+            if (typeString != null) type = BulletType.getBullet(typeString);
+            if (ownerName != null && !ownerName.equals("null")) {
+                owner = FMLCommonHandler.instance().getMinecraftServerInstance().getConfigurationManager().func_152612_a(ownerName);
+            }
+        }
     }
 
     @Override
