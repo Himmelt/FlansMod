@@ -234,11 +234,6 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
         double unitY = motionY / time;
         double unitZ = motionZ / time;
 
-        System.out.println("Motion:time:" + time);
-        System.out.println("Motion:motionX:" + motionX);
-        System.out.println("Motion:motionY:" + motionY);
-        System.out.println("Motion:motionZ:" + motionZ);
-
         //Iterate over all entities
         for (int i = 0; i < worldObj.loadedEntityList.size(); i++) {
             Entity entity = (Entity) worldObj.loadedEntityList.get(i);
