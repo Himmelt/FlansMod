@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.flansmod.common.FlansMod.DEBUG;
+
 public class ClientProxy extends CommonProxy {
     public static String modelDir = "com.flansmod.client.model.";
 
@@ -69,8 +71,9 @@ public class ClientProxy extends CommonProxy {
         mechaRenderer = new RenderMecha();
 
         //Register custom item renderers
-        for (GunType gunType : GunType.guns.values())
+        for (GunType gunType : GunType.guns.values()) {
             MinecraftForgeClient.registerItemRenderer(gunType.item, gunRenderer);
+        }
 
         for (GrenadeType grenadeType : GrenadeType.grenades)
             MinecraftForgeClient.registerItemRenderer(grenadeType.item, grenadeRenderer);
@@ -245,12 +248,11 @@ public class ClientProxy extends CommonProxy {
      * For example, the model class "com.flansmod.client.model.mw.ModelMP5"
      * is referenced in the type file by the string "mw.MP5"
      */
-    private String getModelName(String in) {
+    private String getModelName(String clzName) {
         //Split about dots
-        String[] split = in.split("\\.");
+        String[] split = clzName.split("\\.");
         //If there is no dot, our model class is in the default model package
-        if (split.length == 1)
-            return "Model" + in;
+        if (split.length == 1) return "Model" + clzName;
             //Otherwise, we need to slightly rearrange the wording of the string for it to make sense
         else if (split.length > 1) {
             StringBuilder out = new StringBuilder("Model" + split[split.length - 1]);
@@ -259,21 +261,21 @@ public class ClientProxy extends CommonProxy {
             }
             return out.toString();
         }
-        return in;
+        return clzName;
     }
 
     /**
      * Generic model loader method for getting model classes and casting them to the required class type
      */
     @Override
-    public <T> T loadModel(String s, String shortName, Class<T> typeClass) {
-        if (s == null || shortName == null)
-            return null;
+    public <T> T loadModel(String clzName, String shortName, Class<T> typeClass) {
+        if (clzName == null || shortName == null) return null;
         try {
-            return typeClass.cast(Class.forName(modelDir + getModelName(s)).getConstructor().newInstance());
+            Object object = Class.forName(modelDir + getModelName(clzName)).getConstructor().newInstance();
+            return typeClass.cast(object);
         } catch (Exception e) {
-            FlansMod.log(Level.WARN, "Failed to load model : " + shortName + " (" + s + ")");
-            FlansMod.log(Level.WARN, e.getMessage());
+            FlansMod.log(Level.WARN, "Failed to load model shortName: " + shortName + " | clzName: " + clzName);
+            if (DEBUG) e.printStackTrace();
         }
         return null;
     }

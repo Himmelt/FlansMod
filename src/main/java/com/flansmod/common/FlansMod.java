@@ -499,6 +499,7 @@ public class FlansMod {
     }
 
     public static void syncConfig() {
+        DEBUG = configFile.getBoolean("debugMode", Configuration.CATEGORY_GENERAL, DEBUG, "Debug Mode.");
         //generalConfigInteger = configFile.getInt("Config Integer", Configuration.CATEGORY_GENERAL, generalConfigInteger, 0, Integer.MAX_VALUE, "An Integer!");
         //generalConfigString = configFile.getString("Config String", Configuration.CATEGORY_GENERAL, generalConfigString, "A String!");
         addGunpowderRecipe = configFile.getBoolean("Gunpowder Recipe", Configuration.CATEGORY_GENERAL, addGunpowderRecipe, "Whether or not to add the extra gunpowder recipe (3 charcoal + 1 lightstone)");
