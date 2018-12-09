@@ -24,6 +24,18 @@ public class FMLEventHandler {
         this.proxy = proxy;
     }
 
+    private static boolean getTemp(UUID uuid) {
+        return temps.containsKey(uuid) ? temps.get(uuid) : false;
+    }
+
+    private static long getLast(UUID uuid) {
+        return lasts.containsKey(uuid) ? lasts.get(uuid) : 0L;
+    }
+
+    public static boolean isSneaking(UUID uuid) {
+        return sneaking.containsKey(uuid) ? sneaking.get(uuid) : false;
+    }
+
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
         UUID uuid = event.player.getUniqueID();
@@ -34,12 +46,12 @@ public class FMLEventHandler {
             lasts.put(uuid, System.currentTimeMillis());
             return;
         }
-        if (!temps.computeIfAbsent(uuid, u -> false)) {
+        if (!getTemp(uuid)) {
             temps.put(uuid, true);
             lasts.put(uuid, System.currentTimeMillis());
             return;
         }
-        if (sneaking.computeIfAbsent(uuid, u -> false) || System.currentTimeMillis() - lasts.computeIfAbsent(uuid, u -> 0L) >= 2000) {
+        if (isSneaking(uuid) || System.currentTimeMillis() - getLast(uuid) >= 2000) {
             sneaking.put(uuid, true);
         }
     }
@@ -72,9 +84,5 @@ public class FMLEventHandler {
                 lasts.remove(uuid);
             }
         }
-    }
-
-    public static boolean isSneaking(UUID uuid) {
-        return sneaking.computeIfAbsent(uuid, u -> false);
     }
 }

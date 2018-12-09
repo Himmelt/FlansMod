@@ -2,6 +2,7 @@ package com.flansmod.client;
 
 import com.flansmod.client.debug.*;
 import com.flansmod.client.gui.*;
+import com.flansmod.client.handler.ClientBusHandler;
 import com.flansmod.client.handler.ClientFMLHandler;
 import com.flansmod.client.model.*;
 import com.flansmod.common.CommonProxy;
@@ -34,6 +35,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
+import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.Level;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -376,6 +378,7 @@ public class ClientProxy extends CommonProxy {
     public void onPreInit(FMLPreInitializationEvent event) {
         super.onPreInit(event);
         FMLCommonHandler.instance().bus().register(new ClientFMLHandler());
+        MinecraftForge.EVENT_BUS.register(new ClientBusHandler());
         flanChannel.register(new ClientFMLHandler());
     }
 
