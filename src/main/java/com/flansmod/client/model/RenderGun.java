@@ -269,7 +269,7 @@ public class RenderGun implements IItemRenderer {
                     break;
             }
 
-            renderGun(item, gunType, f, model, animations, reloadRotate);
+            renderGun(item, gunType, f, model, animations, reloadRotate, type);
         }
         GL11.glPopMatrix();
     }
@@ -508,16 +508,16 @@ public class RenderGun implements IItemRenderer {
                             float xDisplacement = (loadOnlyClipPosition < 0.5F ? loadOnlyClipPosition * 2F : 1F);
 
                             GL11.glTranslatef(model.endLoadedAmmoDistance * xDisplacement, 0F, 0F);
-							
+
 							/*
 							GL11.glTranslatef(1F * bulletProgress, -3F * bulletProgress, 0F);
 							if(bulletProgress > 0.5F)
-								GL11.glRotatef(-90F * (bulletProgress * 2F), 0F, 0F, 1F);	
-							
+								GL11.glRotatef(-90F * (bulletProgress * 2F), 0F, 0F, 1F);
+
 							if(bulletProgress < 0.5F)
 							{
 								GL11.glTranslatef(-3F * (bulletProgress - 0.5F), 0F, 0F);
-								
+
 							}
 							*/
 
@@ -618,5 +618,326 @@ public class RenderGun implements IItemRenderer {
             }
             GL11.glPopMatrix();
         }
+    }
+
+    /**
+     * Gun render method, seperated from transforms so that mecha renderer may also call this
+     */
+    private void renderGun(ItemStack item, GunType type, float f, ModelGun model, GunAnimations animations, float reloadRotate, ItemRenderType rtype) {
+        GL11.glPushMatrix();
+        if (rtype == ItemRenderType.EQUIPPED_FIRST_PERSON) {
+            GL11.glTranslatef(0F, 0F, 0F);
+            GL11.glTranslatef(-(animations.lastGunRecoil + (animations.gunRecoil - animations.lastGunRecoil) * smoothing) * 0.125F, 0.0F, 0.0F);
+            GL11.glRotatef(-(animations.lastGunRecoil + (animations.gunRecoil - animations.lastGunRecoil) * smoothing) * 0.125F, 0.0F, 0.0F, 1.0F);
+            if (model.animationType == EnumAnimationType.SHOTGUN && !animations.reloading) {
+                GL11.glRotatef(-(1.0F - Math.abs(animations.lastPumped + (animations.pumped - animations.lastPumped) * smoothing)) * -5.0F, 0.0F, 1.0F, 0.0F);
+                GL11.glRotatef(-(1.0F - Math.abs(animations.lastPumped + (animations.pumped - animations.lastPumped) * smoothing)) * 5.0F, 1.0F, 0.0F, 0.0F);
+            }
+
+            /*if(model.isSingleAction) {
+                GL11.glRotatef(-(1.0F - Math.abs(animations.lastGunPullback + (animations.gunPullback - animations.lastGunPullback) * smoothing)) * -5.0F, 0.0F, 0.0F, 1.0F);
+                GL11.glRotatef(-(1.0F - Math.abs(animations.lastGunPullback + (animations.gunPullback - animations.lastGunPullback) * smoothing)) * 2.5F, 1.0F, 0.0F, 0.0F);
+            }*/
+        }
+        //Make sure we actually have the renderEngine
+        if (renderEngine == null) renderEngine = Minecraft.getMinecraft().renderEngine;
+
+        //If we have no animation variables, use defaults
+        if (animations == null) animations = GunAnimations.defaults;
+
+        //Get all the attachments that we may need to render
+        AttachmentType scopeAttachment = type.getScope(item);
+        AttachmentType barrelAttachment = type.getBarrel(item);
+        AttachmentType stockAttachment = type.getStock(item);
+        AttachmentType gripAttachment = type.getGrip(item);
+
+        ItemStack[] bulletStacks = new ItemStack[type.numAmmoItemsInGun];
+        boolean empty = true;
+        for (int i = 0; i < type.numAmmoItemsInGun; i++) {
+            bulletStacks[i] = ((ItemGun) item.getItem()).getBulletItemStack(item, i);
+            if (bulletStacks[i] != null && bulletStacks[i].getItem() instanceof ItemBullet && bulletStacks[i].getItemDamage() < bulletStacks[i].getMaxDamage())
+                empty = false;
+        }
+
+        //Load texture
+        renderEngine.bindTexture(FlansModResourceHandler.getPaintjobTexture(type.getPaintjob(item.stackTagCompound.getString("Paint"))));
+
+        if (scopeAttachment != null)
+            GL11.glTranslatef(0F, -scopeAttachment.model.renderOffset / 16F, 0F);
+
+        //Render the gun and default attachment models
+        GL11.glPushMatrix();
+        {
+            GL11.glScalef(type.modelScale, type.modelScale, type.modelScale);
+            model.renderGun(f);
+            if (scopeAttachment == null && !model.scopeIsOnSlide && !model.scopeIsOnBreakAction)
+                model.renderDefaultScope(f);
+            if (barrelAttachment == null)
+                model.renderDefaultBarrel(f);
+            if (stockAttachment == null)
+                model.renderDefaultStock(f);
+            if (gripAttachment == null && !model.gripIsOnPump)
+                model.renderDefaultGrip(f);
+
+            //Render various shoot / reload animated parts
+            //Render the slide
+            GL11.glPushMatrix();
+            {
+                GL11.glTranslatef(-(animations.lastGunSlide + (animations.gunSlide - animations.lastGunSlide) * smoothing) * model.gunSlideDistance, 0F, 0F);
+                model.renderSlide(f);
+                if (scopeAttachment == null && model.scopeIsOnSlide)
+                    model.renderDefaultScope(f);
+            }
+            GL11.glPopMatrix();
+
+            //Render the break action
+            GL11.glPushMatrix();
+            {
+                GL11.glTranslatef(model.barrelBreakPoint.x, model.barrelBreakPoint.y, model.barrelBreakPoint.z);
+                GL11.glRotatef(reloadRotate * -model.breakAngle, 0F, 0F, 1F);
+                GL11.glTranslatef(-model.barrelBreakPoint.x, -model.barrelBreakPoint.y, -model.barrelBreakPoint.z);
+                model.renderBreakAction(f);
+                if (scopeAttachment == null && model.scopeIsOnBreakAction)
+                    model.renderDefaultScope(f);
+            }
+            GL11.glPopMatrix();
+
+            //Render the pump-action handle
+            GL11.glPushMatrix();
+            {
+                GL11.glTranslatef(-(1 - Math.abs(animations.lastPumped + (animations.pumped - animations.lastPumped) * smoothing)) * model.pumpHandleDistance, 0F, 0F);
+                model.renderPump(f);
+                if (gripAttachment == null && model.gripIsOnPump)
+                    model.renderDefaultGrip(f);
+            }
+            GL11.glPopMatrix();
+
+            //Render the minigun barrels
+            if (type.mode == EnumFireMode.MINIGUN) {
+                GL11.glPushMatrix();
+                GL11.glTranslatef(model.minigunBarrelOrigin.x, model.minigunBarrelOrigin.y, model.minigunBarrelOrigin.z);
+                GL11.glRotatef(animations.minigunBarrelRotation, 1F, 0F, 0F);
+                GL11.glTranslatef(-model.minigunBarrelOrigin.x, -model.minigunBarrelOrigin.y, -model.minigunBarrelOrigin.z);
+                model.renderMinigunBarrel(f);
+                GL11.glPopMatrix();
+            }
+
+            //Render the cocking handle
+
+            //Render the revolver barrel
+            GL11.glPushMatrix();
+            {
+                GL11.glTranslatef(model.revolverFlipPoint.x, model.revolverFlipPoint.y, model.revolverFlipPoint.z);
+                GL11.glRotatef(reloadRotate * model.revolverFlipAngle, 1F, 0F, 0F);
+                GL11.glTranslatef(-model.revolverFlipPoint.x, -model.revolverFlipPoint.y, -model.revolverFlipPoint.z);
+                model.renderRevolverBarrel(f);
+            }
+            GL11.glPopMatrix();
+
+            //Render the clip
+            GL11.glPushMatrix();
+            {
+                boolean shouldRender = true;
+                //Check to see if the ammo should be rendered first
+                switch (model.animationType) {
+                    case END_LOADED:
+                    case BACK_LOADED: {
+                        if (empty)
+                            shouldRender = false;
+                        break;
+                    }
+                    default:
+                        break;
+                }
+                //If it should be rendered, do the transformations required
+                if (shouldRender && animations.reloading && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0) {
+                    //Calculate the amount of tilt required for the reloading animation
+                    float effectiveReloadAnimationProgress = animations.lastReloadAnimationProgress + (animations.reloadAnimationProgress - animations.lastReloadAnimationProgress) * smoothing;
+                    float clipPosition = 0F;
+                    if (effectiveReloadAnimationProgress > model.tiltGunTime && effectiveReloadAnimationProgress < model.tiltGunTime + model.unloadClipTime)
+                        clipPosition = (effectiveReloadAnimationProgress - model.tiltGunTime) / model.unloadClipTime;
+                    if (effectiveReloadAnimationProgress >= model.tiltGunTime + model.unloadClipTime && effectiveReloadAnimationProgress < model.tiltGunTime + model.unloadClipTime + model.loadClipTime)
+                        clipPosition = 1F - (effectiveReloadAnimationProgress - (model.tiltGunTime + model.unloadClipTime)) / model.loadClipTime;
+
+                    float loadOnlyClipPosition = Math.max(0F, Math.min(1F, 1F - ((effectiveReloadAnimationProgress - model.tiltGunTime) / (model.unloadClipTime + model.loadClipTime))));
+
+                    //Rotate the gun dependent on the animation type
+                    float dYaw;
+                    int xDisplacement;
+                    float bulletProgress;
+                    float var37;
+                    switch (model.animationType) {
+                        case BOTTOM_CLIP:
+                            GL11.glRotatef(-180.0F * clipPosition, 0.0F, 0.0F, 1.0F);
+                            GL11.glRotatef(60.0F * clipPosition, 1.0F, 0.0F, 0.0F);
+                            GL11.glTranslatef(0.5F * clipPosition * 1.0F / type.modelScale, 0.0F, 0.0F);
+                            break;
+                        case PISTOL_CLIP:
+                            GL11.glRotatef(-90.0F * clipPosition * clipPosition, 0.0F, 0.0F, 1.0F);
+                            GL11.glTranslatef(0.0F, -1.0F * clipPosition * 1.0F / type.modelScale, 0.0F);
+                            break;
+                        case TOP_CLIP:
+                        case BULLPUP:
+                            dYaw = clipPosition * model.numBulletsInReloadAnimation;
+                            xDisplacement = MathHelper.floor_float(dYaw);
+                            bulletProgress = dYaw - (float)xDisplacement;
+                            GL11.glRotatef(bulletProgress * -30.0F, 0.0F, 0.0F, 1.0F);
+                            GL11.glTranslatef(bulletProgress * -0.5F * 1.0F / type.modelScale, bulletProgress * -1.0F * 1.0F / type.modelScale, 0.0F);
+                            break;
+                        case SIDE_CLIP:
+                            dYaw = loadOnlyClipPosition > 0.5F?loadOnlyClipPosition * 2.0F - 1.0F:0.0F;
+                            GL11.glRotatef(-45.0F * dYaw, 0.0F, 0.0F, 1.0F);
+                            GL11.glTranslatef(-model.endLoadedAmmoDistance * dYaw, -0.5F * dYaw, 0.0F);
+                            var37 = loadOnlyClipPosition < 0.5F?loadOnlyClipPosition * 2.0F:1.0F;
+                            GL11.glTranslatef(model.endLoadedAmmoDistance * var37, 0.0F, 0.0F);
+                            break;
+                        case P90:
+                            dYaw = loadOnlyClipPosition > 0.5F?loadOnlyClipPosition * 2.0F - 1.0F:0.0F;
+                            GL11.glTranslatef(model.endLoadedAmmoDistance * dYaw, -0.5F * dYaw, 0.0F);
+                            var37 = loadOnlyClipPosition < 0.5F?loadOnlyClipPosition * 2.0F:1.0F;
+                            GL11.glTranslatef(-model.endLoadedAmmoDistance * var37, 0.0F, 0.0F);
+                            break;
+                        case SHOTGUN:
+                            GL11.glRotatef(-150.0F * clipPosition, 0.0F, 0.0F, 1.0F);
+                            GL11.glRotatef(60.0F * clipPosition, 1.0F, 0.0F, 0.0F);
+                            GL11.glTranslatef(1.0F * clipPosition * 1.0F / type.modelScale, -0.5F * clipPosition * 1.0F / type.modelScale, 0.0F);
+                            break;
+                        case RIFLE:
+                            dYaw = clipPosition * model.numBulletsInReloadAnimation;
+                            xDisplacement = MathHelper.floor_float(dYaw);
+                            bulletProgress = dYaw - (float)xDisplacement;
+                            GL11.glRotatef(bulletProgress * 15.0F, 0.0F, 1.0F, 0.0F);
+                            GL11.glRotatef(bulletProgress * 15.0F, 0.0F, 0.0F, 1.0F);
+                            GL11.glTranslatef(bulletProgress * -1.0F * 1.0F / type.modelScale, 0.0F, bulletProgress * 0.5F * 1.0F / type.modelScale);
+                            break;
+                        case REVOLVER:
+                            dYaw = clipPosition * model.numBulletsInReloadAnimation;
+                            xDisplacement = MathHelper.floor_float(dYaw);
+                            bulletProgress = dYaw - (float)xDisplacement;
+                            GL11.glRotatef(bulletProgress * 55.0F, 0.0F, 1.0F, 0.0F);
+                            GL11.glRotatef(bulletProgress * 95.0F, 0.0F, 0.0F, 1.0F);
+                            GL11.glTranslatef(bulletProgress * -0.1F * 1.0F / type.modelScale, bulletProgress * 1.0F * 1.0F / type.modelScale, bulletProgress * 0.5F * 1.0F / type.modelScale);
+                            break;
+                        case END_LOADED://REVOLVER2:
+                            GL11.glTranslatef(model.revolverFlipPoint.x, model.revolverFlipPoint.y, model.revolverFlipPoint.z);
+                            GL11.glRotatef(reloadRotate * model.revolverFlipAngle, 1.0F, 0.0F, 0.0F);
+                            GL11.glTranslatef(-model.revolverFlipPoint.x, -model.revolverFlipPoint.y, -model.revolverFlipPoint.z);
+                            GL11.glTranslatef(-1.0F * clipPosition * 1.0F / type.modelScale, 0.0F, 0.0F);
+                            break;
+                        //case END_LOADED:
+                        //    GL11.glTranslatef(model.revolver2FlipPoint.x, model.revolver2FlipPoint.y, model.revolver2FlipPoint.z);
+                        //    GL11.glRotatef(reloadRotate * model.revolver2FlipAngle, -1.0F, 0.0F, 0.0F);
+                        //    GL11.glTranslatef(-model.revolver2FlipPoint.x, -model.revolver2FlipPoint.y, -model.revolver2FlipPoint.z);
+                        //    GL11.glTranslatef(-1.0F * clipPosition * 1.0F / type.modelScale, 0.0F, 0.0F);
+                        //    break;
+                        case RIFLE_TOP:
+                            GL11.glRotatef(5.0F * clipPosition, 0.0F, 0.0F, 1.0F);
+                            GL11.glTranslatef(0.0F, -3.0F * clipPosition * 1.0F / type.modelScale, 0.0F);
+                        case ALT_PISTOL_CLIP:
+                        default:
+                            break;
+                        case GENERIC:
+                            GL11.glRotatef(model.rotateClipVertical * clipPosition, 0.0F, 0.0F, 1.0F);
+                            GL11.glRotatef(model.rotateClipHorizontal * clipPosition, 0.0F, 1.0F, 0.0F);
+                            GL11.glRotatef(model.tiltClip * clipPosition, 1.0F, 0.0F, 0.0F);
+                            GL11.glTranslatef(model.translateClip.x * clipPosition * 1.0F / type.modelScale, model.translateClip.y * clipPosition * 1.0F / type.modelScale, model.translateClip.z * clipPosition * 1.0F / type.modelScale);
+                            break;
+                        case BACK_LOADED:
+                            GL11.glTranslatef(model.barrelBreakPoint.x, model.barrelBreakPoint.y, model.barrelBreakPoint.z);
+                            GL11.glRotatef(reloadRotate * -model.breakAngle, 0.0F, 0.0F, 1.0F);
+                            GL11.glTranslatef(-model.barrelBreakPoint.x, -model.barrelBreakPoint.y, -model.barrelBreakPoint.z);
+                            GL11.glTranslatef(-1.0F * clipPosition * 1.0F / type.modelScale, 0.0F, 0.0F);
+                            break;
+                        case STRIKER:
+                            GL11.glRotatef(180.0F * clipPosition, 0.0F, 1.0F, 0.0F);
+                            GL11.glRotatef(60.0F * clipPosition, 0.0F, 1.0F, 0.0F);
+                            GL11.glTranslatef(0.5F * clipPosition * 1.0F / type.modelScale, 0.0F, 0.0F);
+                            break;
+                        case BREAK_ACTION:
+                            GL11.glRotatef(-15.0F * reloadRotate * reloadRotate, 0.0F, 0.0F, 1.0F);
+                            GL11.glTranslatef(0.0F, 0.075F * reloadRotate, 0.0F);
+                            GL11.glTranslatef(-2.0F * clipPosition * 1.0F / type.modelScale, -0.3F * clipPosition * 1.0F / type.modelScale, 0.5F * clipPosition * 1.0F / type.modelScale);
+                    }
+                }
+
+                if (shouldRender)
+                    model.renderAmmo(f);
+            }
+            GL11.glPopMatrix();
+        }
+        GL11.glPopMatrix();
+
+        //Render static attachments
+        //Scope
+        if (scopeAttachment != null) {
+            GL11.glPushMatrix();
+            {
+                renderEngine.bindTexture(FlansModResourceHandler.getTexture(scopeAttachment));
+                if (model.scopeIsOnBreakAction) {
+                    GL11.glTranslatef(model.barrelBreakPoint.x, model.barrelBreakPoint.y, model.barrelBreakPoint.z);
+                    GL11.glRotatef(reloadRotate * -model.breakAngle, 0F, 0F, 1F);
+                    GL11.glTranslatef(-model.barrelBreakPoint.x, -model.barrelBreakPoint.y, -model.barrelBreakPoint.z);
+                }
+                GL11.glTranslatef(model.scopeAttachPoint.x * type.modelScale, model.scopeAttachPoint.y * type.modelScale, model.scopeAttachPoint.z * type.modelScale);
+
+                if (model.scopeIsOnSlide)
+                    GL11.glTranslatef(-(animations.lastGunSlide + (animations.gunSlide - animations.lastGunSlide) * smoothing) * model.gunSlideDistance, 0F, 0F);
+                GL11.glScalef(scopeAttachment.modelScale, scopeAttachment.modelScale, scopeAttachment.modelScale);
+                ModelAttachment scopeModel = scopeAttachment.model;
+                if (scopeModel != null)
+                    scopeModel.renderAttachment(f);
+                renderEngine.bindTexture(FlansModResourceHandler.getTexture(type));
+            }
+            GL11.glPopMatrix();
+        }
+
+        //Grip
+        if (gripAttachment != null) {
+            GL11.glPushMatrix();
+            {
+                renderEngine.bindTexture(FlansModResourceHandler.getTexture(gripAttachment));
+                GL11.glTranslatef(model.gripAttachPoint.x * type.modelScale, model.gripAttachPoint.y * type.modelScale, model.gripAttachPoint.z * type.modelScale);
+                if (model.gripIsOnPump)
+                    GL11.glTranslatef(-(1 - Math.abs(animations.lastPumped + (animations.pumped - animations.lastPumped) * smoothing)) * model.pumpHandleDistance, 0F, 0F);
+                GL11.glScalef(gripAttachment.modelScale, gripAttachment.modelScale, gripAttachment.modelScale);
+                ModelAttachment gripModel = gripAttachment.model;
+                if (gripModel != null)
+                    gripModel.renderAttachment(f);
+                renderEngine.bindTexture(FlansModResourceHandler.getTexture(type));
+            }
+            GL11.glPopMatrix();
+        }
+
+        //Barrel
+        if (barrelAttachment != null) {
+            GL11.glPushMatrix();
+            {
+                renderEngine.bindTexture(FlansModResourceHandler.getTexture(barrelAttachment));
+                GL11.glTranslatef(model.barrelAttachPoint.x * type.modelScale, model.barrelAttachPoint.y * type.modelScale, model.barrelAttachPoint.z * type.modelScale);
+                GL11.glScalef(barrelAttachment.modelScale, barrelAttachment.modelScale, barrelAttachment.modelScale);
+                ModelAttachment barrelModel = barrelAttachment.model;
+                if (barrelModel != null)
+                    barrelModel.renderAttachment(f);
+                renderEngine.bindTexture(FlansModResourceHandler.getTexture(type));
+            }
+            GL11.glPopMatrix();
+        }
+
+        //Stock
+        if (stockAttachment != null) {
+            GL11.glPushMatrix();
+            {
+                renderEngine.bindTexture(FlansModResourceHandler.getTexture(stockAttachment));
+                GL11.glTranslatef(model.stockAttachPoint.x * type.modelScale, model.stockAttachPoint.y * type.modelScale, model.stockAttachPoint.z * type.modelScale);
+                GL11.glScalef(stockAttachment.modelScale, stockAttachment.modelScale, stockAttachment.modelScale);
+                ModelAttachment stockModel = stockAttachment.model;
+                if (stockModel != null)
+                    stockModel.renderAttachment(f);
+                renderEngine.bindTexture(FlansModResourceHandler.getTexture(type));
+            }
+            GL11.glPopMatrix();
+        }
+
+        GL11.glPopMatrix();
     }
 }
