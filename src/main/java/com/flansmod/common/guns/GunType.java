@@ -28,7 +28,7 @@ public class GunType extends InfoType implements IScope {
     /**
      * The list of bullet types that can be used in this gun
      */
-    public List<ShootableType> ammo = new ArrayList<ShootableType>();
+    public List<ShootableType> ammo = new ArrayList<>();
     /**
      * Whether the player can press the reload key (default R) to reload this gun
      */
@@ -114,11 +114,11 @@ public class GunType extends InfoType implements IScope {
     /**
      * The path the melee weapon takes
      */
-    public ArrayList<Vector3f> meleePath = new ArrayList<Vector3f>(), meleePathAngles = new ArrayList<Vector3f>();
+    public ArrayList<Vector3f> meleePath = new ArrayList<>(), meleePathAngles = new ArrayList<>();
     /**
      * The points on the melee weapon that damage is actually done from.
      */
-    public ArrayList<Vector3f> meleeDamagePoints = new ArrayList<Vector3f>();
+    public ArrayList<Vector3f> meleeDamagePoints = new ArrayList<>();
     /**
      * Set these to make guns only usable by a certain type of entity
      */
@@ -246,7 +246,7 @@ public class GunType extends InfoType implements IScope {
     /**
      * The list of allowed attachments for this gun
      */
-    public ArrayList<AttachmentType> allowedAttachments = new ArrayList<AttachmentType>();
+    public ArrayList<AttachmentType> allowedAttachments = new ArrayList<>();
     /**
      * Whether each attachment slot is available
      */
@@ -261,7 +261,7 @@ public class GunType extends InfoType implements IScope {
     /**
      * The list of all available paintjobs for this gun
      */
-    public ArrayList<Paintjob> paintjobs = new ArrayList<Paintjob>();
+    public ArrayList<Paintjob> paintjobs = new ArrayList<>();
     /**
      * The default paintjob for this gun. This is created automatically in the load process from existing info
      */
@@ -270,11 +270,11 @@ public class GunType extends InfoType implements IScope {
     /**
      * The static hashmap of all guns by shortName
      */
-    public static HashMap<String, GunType> guns = new HashMap<String, GunType>();
+    public static HashMap<String, GunType> guns = new HashMap<>();
     /**
      * The static list of all guns
      */
-    public static ArrayList<GunType> gunList = new ArrayList<GunType>();
+    public static ArrayList<GunType> gunList = new ArrayList<>();
 
     //Modifiers
     /**
@@ -301,7 +301,7 @@ public class GunType extends InfoType implements IScope {
         //After all lines have been read, set up the default paintjob
         defaultPaintjob = new Paintjob(iconPath, texture, new ItemStack[0]);
         //Move to a new list to ensure that the default paintjob is always first
-        ArrayList<Paintjob> newPaintjobList = new ArrayList<Paintjob>();
+        ArrayList<Paintjob> newPaintjobList = new ArrayList<>();
         newPaintjobList.add(defaultPaintjob);
         newPaintjobList.addAll(paintjobs);
         paintjobs = newPaintjobList;
@@ -566,7 +566,7 @@ public class GunType extends InfoType implements IScope {
      */
     public ArrayList<AttachmentType> getCurrentAttachments(ItemStack gun) {
         checkForTags(gun);
-        ArrayList<AttachmentType> attachments = new ArrayList<AttachmentType>();
+        ArrayList<AttachmentType> attachments = new ArrayList<>();
         NBTTagCompound attachmentTags = gun.stackTagCompound.getCompoundTag("attachments");
         NBTTagList genericsList = attachmentTags.getTagList("generics", (byte) 10); //TODO : Check this 10 is correct
         for (int i = 0; i < numGenericAttachmentSlots; i++) {

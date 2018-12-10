@@ -1,13 +1,6 @@
 package com.flansmod.common.guns;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
+import com.flansmod.common.types.InfoType;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.EnchantmentProtection;
 import net.minecraft.entity.Entity;
@@ -25,11 +18,10 @@ import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 
-import com.flansmod.common.types.InfoType;
+import java.util.*;
 
-public class FlansModExplosion extends Explosion 
-{
-	private int boomRadius = 16;
+public class FlansModExplosion extends Explosion {
+    private int boomRadius = 16;
     private Random explosionRNG = new Random();
     private HashMap<EntityPlayer, Vec3> playerLocations = new HashMap<EntityPlayer, Vec3>();
     private World worldObj;
@@ -37,23 +29,21 @@ public class FlansModExplosion extends Explosion
     public EntityPlayer player;
     public List nonProcessedBlockPositions = new ArrayList();
     private float radius;
-    
-	public FlansModExplosion(World w, Entity e, EntityPlayer p, InfoType t, double x, double y, double z, float r, boolean breakBlocks) 
-	{
-		super(w, e, x, y, z, r);
-		this.radius = r;
-		worldObj = w;
-		type = t;
-		player = p;
+
+    public FlansModExplosion(World w, Entity e, EntityPlayer p, InfoType t, double x, double y, double z, float r, boolean breakBlocks) {
+        super(w, e, x, y, z, r);
+        this.radius = r;
+        worldObj = w;
+        type = t;
+        player = p;
         isFlaming = false;
         isSmoking = breakBlocks;
         doExplosionA();
         doExplosionB(true);
-        
-        if(!worldObj.isRemote)
-        {
-	        if (!breakBlocks)
-	            affectedBlockPositions.clear();
+
+        if (!worldObj.isRemote) {
+            if (!breakBlocks)
+                affectedBlockPositions.clear();
 
             for (Object playerEntity : worldObj.playerEntities) {
                 EntityPlayer entityplayer = (EntityPlayer) playerEntity;
@@ -61,25 +51,20 @@ public class FlansModExplosion extends Explosion
                     ((EntityPlayerMP) entityplayer).playerNetServerHandler.sendPacket(new S27PacketExplosion(x, y, z, r, affectedBlockPositions, (Vec3) func_77277_b().get(entityplayer)));
             }
         }
-	}
+    }
 
-	@Override
-    public void doExplosionA()
-    {
+    @Override
+    public void doExplosionA() {
         float f = explosionSize;
         HashSet hashset = new HashSet();
         double d0;
         double d1;
         double d2;
 
-        for(int i = 0; i < boomRadius; ++i)
-        {
-            for(int j = 0; j < boomRadius; ++j)
-            {
-                for(int k = 0; k < boomRadius; ++k)
-                {
-                    if(i == 0 || i == boomRadius - 1 || j == 0 || j == boomRadius - 1 || k == 0 || k == boomRadius - 1)
-                    {
+        for (int i = 0; i < boomRadius; ++i) {
+            for (int j = 0; j < boomRadius; ++j) {
+                for (int k = 0; k < boomRadius; ++k) {
+                    if (i == 0 || i == boomRadius - 1 || j == 0 || j == boomRadius - 1 || k == 0 || k == boomRadius - 1) {
                         double d3 = (i / (boomRadius - 1.0F) * 2.0F - 1.0F);
                         double d4 = (j / (boomRadius - 1.0F) * 2.0F - 1.0F);
                         double d5 = (k / (boomRadius - 1.0F) * 2.0F - 1.0F);
@@ -92,8 +77,7 @@ public class FlansModExplosion extends Explosion
                         d1 = explosionY;
                         d2 = explosionZ;
 
-                        for (float f2 = 0.3F; f1 > 0.0F; f1 -= f2 * 0.75F)
-                        {
+                        for (float f2 = 0.3F; f1 > 0.0F; f1 -= f2 * 0.75F) {
                             int l = MathHelper.floor_double(d0);
                             int i1 = MathHelper.floor_double(d1);
                             int j1 = MathHelper.floor_double(d2);
@@ -102,8 +86,7 @@ public class FlansModExplosion extends Explosion
                             float f3 = exploder != null ? exploder.func_145772_a(this, worldObj, l, i1, j1, block) : block.getExplosionResistance(exploder, worldObj, l, i1, j1, explosionX, explosionY, explosionZ);
                             f1 -= (f3 + 0.3F) * f2;
 
-                            if (f1 > 0.0F && (exploder == null || exploder.func_145774_a(this, worldObj, l, i1, j1, block, f1)))
-                            {
+                            if (f1 > 0.0F && (exploder == null || exploder.func_145774_a(this, worldObj, l, i1, j1, block, f1))) {
                                 hashset.add(new ChunkPosition(l, i1, j1));
                             }
 
@@ -163,16 +146,12 @@ public class FlansModExplosion extends Explosion
      * Does the second part of the explosion (sound, particles, drop spawn)
      */
     @Override
-	public void doExplosionB(boolean par1)
-    {
+    public void doExplosionB(boolean par1) {
         worldObj.playSoundEffect(explosionX, explosionY, explosionZ, "random.explode", 4.0F, (1.0F + (worldObj.rand.nextFloat() - worldObj.rand.nextFloat()) * 0.2F) * 0.7F);
 
-        if (explosionSize >= 2.0F && isSmoking)
-        {
+        if (explosionSize >= 2.0F && isSmoking) {
             worldObj.spawnParticle("hugeexplosion", explosionX, explosionY, explosionZ, 1.0D, 0.0D, 0.0D);
-        }
-        else
-        {
+        } else {
             worldObj.spawnParticle("largeexplode", explosionX, explosionY, explosionZ, 1.0D, 0.0D, 0.0D);
         }
 
@@ -183,26 +162,22 @@ public class FlansModExplosion extends Explosion
         int k;
         Block block;
 
-        if (isSmoking)
-        {
+        if (isSmoking) {
             worldObj.createExplosion(player, explosionX, explosionY, explosionZ, radius, true);
         }
 
-        if (isFlaming)
-        {
+        if (isFlaming) {
             iterator = nonProcessedBlockPositions.iterator();
 
-            while (iterator.hasNext())
-            {
-                chunkposition = (ChunkPosition)iterator.next();
+            while (iterator.hasNext()) {
+                chunkposition = (ChunkPosition) iterator.next();
                 i = chunkposition.chunkPosX;
                 j = chunkposition.chunkPosY;
                 k = chunkposition.chunkPosZ;
                 block = worldObj.getBlock(i, j, k);
                 Block blockBelow = worldObj.getBlock(i, j - 1, k);
 
-                if (block == null && blockBelow.isOpaqueCube() && explosionRNG.nextInt(3) == 0)
-                {
+                if (block == null && blockBelow.isOpaqueCube() && explosionRNG.nextInt(3) == 0) {
                     worldObj.setBlock(i, j, k, Blocks.fire);
                 }
             }
@@ -210,13 +185,11 @@ public class FlansModExplosion extends Explosion
     }
 
     @Override
-	public Map func_77277_b()
-    {
+    public Map func_77277_b() {
         return playerLocations;
     }
 
-    public EntityLivingBase func_94613_c()
-    {
-        return exploder == null ? null : (exploder instanceof EntityTNTPrimed ? ((EntityTNTPrimed)exploder).getTntPlacedBy() : (exploder instanceof EntityLivingBase ? (EntityLivingBase)exploder : null));
+    public EntityLivingBase func_94613_c() {
+        return exploder == null ? null : (exploder instanceof EntityTNTPrimed ? ((EntityTNTPrimed) exploder).getTntPlacedBy() : (exploder instanceof EntityLivingBase ? (EntityLivingBase) exploder : null));
     }
 }

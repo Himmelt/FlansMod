@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class CommonProxy {
+
     protected static Pattern zipJar = Pattern.compile("(.+).(zip|jar)$");
 
     protected final FMLEventChannel flanChannel = NetworkRegistry.INSTANCE.newEventDrivenChannel("flansmod");
@@ -43,13 +44,18 @@ public class CommonProxy {
      * Returns the list of content pack files, and on the client, adds the content pack resources and models to the classpath
      */
     public List<File> getContentList(Method method, ClassLoader classloader) {
-        List<File> contentPacks = new ArrayList<File>();
-        for (File file : FlansMod.flanDir.listFiles()) {
-            //Load folders and valid zip files
-            if (file.isDirectory() || zipJar.matcher(file.getName()).matches()) {
-                //Add the directory to the content pack list
-                FlansMod.log("Loaded content pack : " + file.getName());
-                contentPacks.add(file);
+        List<File> contentPacks = new ArrayList<>();
+        if (FlansMod.flanDir != null) {
+            File[] files = FlansMod.flanDir.listFiles();
+            if (files != null && files.length > 0) {
+                for (File file : files) {
+                    //Load folders and valid zip files
+                    if (file.isDirectory() || zipJar.matcher(file.getName()).matches()) {
+                        //Add the directory to the content pack list
+                        FlansMod.log("Loaded content pack : " + file.getName());
+                        contentPacks.add(file);
+                    }
+                }
             }
         }
         FlansMod.log("Loaded content pack list server side.");

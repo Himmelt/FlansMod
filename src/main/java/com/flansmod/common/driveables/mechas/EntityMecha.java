@@ -418,7 +418,6 @@ public class EntityMecha extends EntityDriveable {
             } else {
                 wouldBeNegativeDamage = 1;
             }
-            ;
 
             float damageToInflict = takeFallDamage ? i * ((type.fallDamageMultiplier * vulnerability())) * wouldBeNegativeDamage : 0;
             float blockDamageFromFalling = damageBlocksFromFalling ? i * (type.blockDamageFromFalling) / 10F : 0;

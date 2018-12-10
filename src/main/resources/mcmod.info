@@ -1,16 +1,19 @@
 [
-{
-  "modid": "flansmod",
-  "name": "Flan's Mod",
-  "description": "Guns, planes and other vehicles in Minecraft.",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
-  "url": "http://www.flansmod.com",
-  "updateUrl": "",
-  "authorList": ["jamioflan","Himmelt"],
-  "credits": "All code contributors.",
-  "logoFile": "flansmod.png",
-  "screenshots": [],
-  "dependencies": []
-}
+  {
+    "modid": "flansmod",
+    "name": "Flan's Mod",
+    "description": "Guns, planes and other vehicles in Minecraft.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "http://www.flansmod.com",
+    "updateUrl": "",
+    "authorList": [
+      "jamioflan",
+      "Himmelt"
+    ],
+    "credits": "All code contributors.",
+    "logoFile": "flansmod.png",
+    "screenshots": [],
+    "dependencies": []
+  }
 ]

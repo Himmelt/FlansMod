@@ -125,7 +125,7 @@ public class ClientProxy extends CommonProxy {
 
                         } catch (Exception e) {
                             FlansMod.log(Level.WARN, "Failed to load images for content pack : " + file.getName());
-                            FlansMod.log(Level.WARN, e.getMessage());
+                            if (DEBUG) e.printStackTrace();
                         }
                         // Add the directory to the content pack list
                         FlansMod.log("Loaded content pack : " + file.getName());
@@ -371,8 +371,7 @@ public class ClientProxy extends CommonProxy {
      */
     @Override
     public boolean keyDown(int keyCode) {
-        boolean state = (keyCode < 0 ? Mouse.isButtonDown(keyCode + 100) : Keyboard.isKeyDown(keyCode));
-        return state;
+        return (keyCode < 0 ? Mouse.isButtonDown(keyCode + 100) : Keyboard.isKeyDown(keyCode));
     }
 
     public void onPreInit(FMLPreInitializationEvent event) {

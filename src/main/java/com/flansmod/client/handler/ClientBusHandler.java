@@ -19,8 +19,9 @@ public class ClientBusHandler {
             }
         }
     }
+
     @SubscribeEvent(receiveCanceled = true)
-    public void on(BlockEvent.BreakEvent event){
+    public void on(BlockEvent.BreakEvent event) {
         System.out.println("BreakEvent");
     }
 }

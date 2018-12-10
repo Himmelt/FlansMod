@@ -1,5 +1,8 @@
 package com.flansmod.common.teams;
 
+import com.flansmod.common.FlansMod;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,21 +15,14 @@ import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-
-import com.flansmod.common.FlansMod;
-
 public class ItemFlagpole extends Item {
 
-	public ItemFlagpole() 
-	{
-		setCreativeTab(FlansMod.tabFlanTeams);
-	}
+    public ItemFlagpole() {
+        setCreativeTab(FlansMod.tabFlanTeams);
+    }
 
-	@Override
-	public ItemStack onItemRightClick(ItemStack itemstack, World world, EntityPlayer entityplayer)
-	{
+    @Override
+    public ItemStack onItemRightClick(ItemStack itemstack, World world, EntityPlayer entityplayer) {
         float f = 1.0F;
         float f1 = entityplayer.prevRotationPitch + (entityplayer.rotationPitch - entityplayer.prevRotationPitch) * f;
         float f2 = entityplayer.prevRotationYaw + (entityplayer.rotationYaw - entityplayer.prevRotationYaw) * f;
@@ -44,39 +40,33 @@ public class ItemFlagpole extends Item {
         double d3 = 5D;
         Vec3 vec3d1 = vec3d.addVector(f7 * d3, f8 * d3, f9 * d3);
         MovingObjectPosition movingobjectposition = world.rayTraceBlocks(vec3d, vec3d1, true);
-        if(movingobjectposition == null)
-        {
+        if (movingobjectposition == null) {
             return itemstack;
         }
-        if(movingobjectposition.typeOfHit == MovingObjectType.BLOCK)
-        {
+        if (movingobjectposition.typeOfHit == MovingObjectType.BLOCK) {
             int i = movingobjectposition.blockX;
             int j = movingobjectposition.blockY;
             int k = movingobjectposition.blockZ;
-            if(!world.isRemote)
-            {
-				if(world.getBlock(i, j, k) == Blocks.snow)
-				{
-					j--;
-				}
-				if(isSolid(world, i, j, k))
-				{
-					world.spawnEntityInWorld(new EntityFlagpole(world, i, j + 1, k));
-				}		            
-			}
+            if (!world.isRemote) {
+                if (world.getBlock(i, j, k) == Blocks.snow) {
+                    j--;
+                }
+                if (isSolid(world, i, j, k)) {
+                    world.spawnEntityInWorld(new EntityFlagpole(world, i, j + 1, k));
+                }
+            }
         }
-		return itemstack;
-	}
-	
-	private boolean isSolid(World world, int i, int j, int k) {
+        return itemstack;
+    }
+
+    private boolean isSolid(World world, int i, int j, int k) {
         Block block = world.getBlock(i, j, k);
         return block != null && block.getMaterial().isSolid() && block.isOpaqueCube();
     }
-	
+
     @Override
     @SideOnly(Side.CLIENT)
-    public void registerIcons(IIconRegister icon) 
-    {
-    	itemIcon = icon.registerIcon("FlansMod:flagpole");
+    public void registerIcons(IIconRegister icon) {
+        itemIcon = icon.registerIcon("FlansMod:flagpole");
     }
 }

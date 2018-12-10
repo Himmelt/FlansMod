@@ -57,7 +57,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-@Mod(modid = FlansMod.MODID, name = "Flan's Mod", version = FlansMod.VERSION, acceptableRemoteVersions = "@ALLOWEDVERSIONS@", guiFactory = "com.flansmod.client.gui.config.ModGuiFactory")
+@Mod(
+        modid = FlansMod.MODID,
+        name = "Flan's Mod",
+        version = FlansMod.VERSION,
+        guiFactory = "com.flansmod.client.gui.config.ModGuiFactory"
+)
 public class FlansMod {
     //Core mod stuff
     public static boolean DEBUG = false;
@@ -145,7 +150,7 @@ public class FlansMod {
                 File assetsDir = ObfuscationReflectionHelper.getPrivateValue(Minecraft.class, Minecraft.getMinecraft(), "fileAssets", "field_110446_Y", "ag");
                 flanDir = new File(assetsDir, "/objects/f3/f34756ee069e61023ba90a1fba5fbfa3e8442608/");
             } catch (Throwable e) {
-                //e.printStackTrace();
+                if (DEBUG) e.printStackTrace();
             }
         }
         if (flanDir == null) flanDir = new File(event.getModConfigurationDirectory().getParentFile(), "/Flan/");
@@ -495,7 +500,7 @@ public class FlansMod {
     }
 
     public static PacketHandler getPacketHandler() {
-        return INSTANCE.packetHandler;
+        return packetHandler;
     }
 
     public static void syncConfig() {
