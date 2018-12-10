@@ -196,8 +196,7 @@ public class FlansModClient extends FlansMod {
 
         //Render debug boxes for player snapshots
         if (FlansMod.DEBUG && data != null) {
-            if (data.snapshots[0] != null)
-                data.snapshots[0].renderSnapshot();
+            if (data.snapshots[0] != null) data.snapshots[0].renderSnapshot();
         }
 
         RendererLivingEntity.NAME_TAG_RANGE = 64F;
@@ -211,8 +210,7 @@ public class FlansModClient extends FlansMod {
 
             //Do custom skin overrides
             //If we have no stored skin, try to get it
-            if (data.skin == null)
-                data.skin = ((AbstractClientPlayer) event.entityPlayer).getLocationSkin();
+            if (data.skin == null) data.skin = ((AbstractClientPlayer) event.entityPlayer).getLocationSkin();
             //Only once we have the stored skin may we override
             if (data.skin != null) {
                 ResourceLocation skin = rendering == null || rendering.playerClass == null ? null : FlansModResourceHandler.getTexture(rendering.playerClass);
@@ -220,8 +218,7 @@ public class FlansModClient extends FlansMod {
             }
 
             //Spectators see all
-            if (thePlayerTeam == Team.spectators)
-                return;
+            if (thePlayerTeam == Team.spectators) return;
             //Nobody sees spectators
             if (renderingTeam == Team.spectators) {
                 event.setCanceled(true);
@@ -351,8 +348,7 @@ public class FlansModClient extends FlansMod {
             }
             inPlane = false;
         }
-        if (controlModeSwitchTimer > 0)
-            controlModeSwitchTimer--;
+        if (controlModeSwitchTimer > 0) controlModeSwitchTimer--;
     }
 
     public static void renderTick(float smoothing) {
@@ -399,8 +395,7 @@ public class FlansModClient extends FlansMod {
     }
 
     public static boolean flipControlMode() {
-        if (controlModeSwitchTimer > 0)
-            return false;
+        if (controlModeSwitchTimer > 0) return false;
         controlModeMouse = !controlModeMouse;
         FMLClientHandler.instance().getClient().displayGuiScreen(controlModeMouse ? new GuiDriveableController((IControllable) FMLClientHandler.instance().getClient().thePlayer.ridingEntity) : null);
         controlModeSwitchTimer = 40;
@@ -408,11 +403,8 @@ public class FlansModClient extends FlansMod {
     }
 
     public static void reloadModels(boolean reloadSkins) {
-        for (InfoType type : InfoType.infoTypes) {
-            type.reloadModel();
-        }
-        if (reloadSkins)
-            proxy.forceReload();
+        for (InfoType type : InfoType.infoTypes) type.reloadModel();
+        if (reloadSkins) proxy.forceReload();
     }
 
     public static Minecraft minecraft = FMLClientHandler.instance().getClient();

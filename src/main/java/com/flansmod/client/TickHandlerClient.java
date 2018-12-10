@@ -56,17 +56,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.flansmod.client.RenderHelper.drawNonStandardTexturedRect;
+
 public class TickHandlerClient {
-    public static final ResourceLocation offHand = new ResourceLocation("flansmod", "gui/offHand.png");
-    public static final ResourceLocation defaultCrossHair = new ResourceLocation("flansmod", "textures/crosshairs/defaultCrosshair.png");
-    public static ArrayList<Vector3i> blockLightOverrides = new ArrayList<Vector3i>();
-    public static int lightOverrideRefreshRate = 5;
 
     private final Minecraft theMc = Minecraft.getMinecraft();
-    public static ResourceLocation crossHair = null;
 
+    public static int lightOverrideRefreshRate = 5;
+    public static ResourceLocation crossHair = null;
+    public static ArrayList<Vector3i> blockLightOverrides = new ArrayList<>();
     private static RenderItem itemRenderer = new RenderItem();
-    private static List<KillMessage> killMessages = new ArrayList<KillMessage>();
+    private static List<KillMessage> killMessages = new ArrayList<>();
+    public static final ResourceLocation offHand = new ResourceLocation("flansmod", "gui/offHand.png");
+    public static final ResourceLocation defaultCrossHair = new ResourceLocation("flansmod", "textures/crosshairs/defaultCrosshair.png");
 
     public TickHandlerClient() {
         FMLCommonHandler.instance().bus().register(this);
@@ -77,9 +79,9 @@ public class TickHandlerClient {
     public void eventHandler(MouseEvent event) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player.getCurrentEquippedItem() != null && player.getCurrentEquippedItem().getItem() instanceof ItemGun) {
-            if (((ItemGun) player.getCurrentEquippedItem().getItem()).type.oneHanded && Keyboard.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindSneak.getKeyCode()) && Math.abs(event.dwheel) > 0)
+            if (((ItemGun) player.getCurrentEquippedItem().getItem()).type.oneHanded && Keyboard.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindSneak.getKeyCode()) && Math.abs(event.dwheel) > 0) {
                 event.setCanceled(true);
-
+            }
         }
     }
 
@@ -347,24 +349,12 @@ public class TickHandlerClient {
 
     private boolean drawCrossHair(int screenWidth, int screenHeight, int offset) {
         if (bindTexture(theMc.getTextureManager(), crossHair)) {
-            drawNonStandardTexturedRect(screenWidth / 2 - 127, screenHeight / 2 - 127, 256 * offset, 0, 256, 256, 768, 256);
+            drawNonStandardTexturedRect(screenWidth / 2 - 127, screenHeight / 2 - 127, 256 * offset, 0, 256, 256, 1024, 256);
             return true;
         } else if (bindTexture(theMc.getTextureManager(), defaultCrossHair)) {
             drawNonStandardTexturedRect(screenWidth / 2 - 127, screenHeight / 2 - 127, 256 * offset, 0, 256, 256, 768, 256);
             return true;
         } else return false;
-    }
-
-    public void drawNonStandardTexturedRect(int screenX, int screenY, int textureU, int textureV, int width, int height, int textureWidth, int textureHeight) {
-        double f = 1F / (double) textureWidth;
-        double f1 = 1F / (double) textureHeight;
-        Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(screenX, screenY + height, 0, textureU * f, (textureV + height) * f1);
-        tessellator.addVertexWithUV(screenX + width, screenY + height, 0, (textureU + width) * f, (textureV + height) * f1);
-        tessellator.addVertexWithUV(screenX + width, screenY, 0, (textureU + width) * f, textureV * f1);
-        tessellator.addVertexWithUV(screenX, screenY, 0, textureU * f, textureV * f1);
-        tessellator.draw();
     }
 
     private static boolean bindTexture(TextureManager manager, ResourceLocation resource) {
