@@ -3,7 +3,6 @@ package com.flansmod.common;
 import com.flansmod.common.driveables.*;
 import com.flansmod.common.driveables.mechas.ContainerMechaInventory;
 import com.flansmod.common.driveables.mechas.EntityMecha;
-import com.flansmod.common.eventhandlers.FMLEventHandler;
 import com.flansmod.common.guns.ContainerGunModTable;
 import com.flansmod.common.guns.boxes.GunBoxType;
 import com.flansmod.common.network.PacketBreakSound;
@@ -11,20 +10,14 @@ import com.flansmod.common.parts.ItemPart;
 import com.flansmod.common.parts.PartType;
 import com.flansmod.common.teams.ArmourBoxType;
 import com.flansmod.common.types.EnumType;
-import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.network.FMLEventChannel;
-import cpw.mods.fml.common.network.NetworkRegistry;
-import cpw.mods.fml.common.network.internal.FMLProxyPacket;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.World;
 
 import java.io.File;
@@ -34,15 +27,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class CommonProxy {
+public abstract class CommonProxy {
 
     protected static Pattern zipJar = Pattern.compile("(.+).(zip|jar)$");
 
-    protected final FMLEventChannel flanChannel = NetworkRegistry.INSTANCE.newEventDrivenChannel("flansmod");
-
-    /**
-     * Returns the list of content pack files, and on the client, adds the content pack resources and models to the classpath
-     */
     public List<File> getContentList(Method method, ClassLoader classloader) {
         List<File> contentPacks = new ArrayList<>();
         if (FlansMod.flanDir != null) {
@@ -62,23 +50,15 @@ public class CommonProxy {
         return contentPacks;
     }
 
-    /**
-     * A ton of client only methods follow
-     */
-    public void load() {
-    }
+    public abstract void load();
 
-    public void forceReload() {
-    }
+    public abstract void forceReload();
 
-    public void registerRenderers() {
-    }
+    public abstract void registerRenderers();
 
-    public void doTutorialStuff(EntityPlayer player, EntityDriveable entityType) {
-    }
+    public abstract void doTutorialStuff(EntityPlayer player, EntityDriveable entityType);
 
-    public void changeControlMode(EntityPlayer player) {
-    }
+    public abstract void changeControlMode(EntityPlayer player);
 
     public boolean mouseControlEnabled() {
         return false;
@@ -107,9 +87,7 @@ public class CommonProxy {
     /**
      * Gets the client GUI element from ClientProxy
      */
-    public Object getClientGui(int ID, EntityPlayer player, World world, int x, int y, int z) {
-        return null;
-    }
+    public abstract Object getClientGui(int ID, EntityPlayer player, World world, int x, int y, int z);
 
     /**
      * Gets the container for the specified GUI
@@ -349,11 +327,9 @@ public class CommonProxy {
     public void buyArmour(String shortName, int piece, ArmourBoxType type) {
     }
 
-    public void onPreInit(FMLPreInitializationEvent event) {
-        FMLCommonHandler.instance().bus().register(new FMLEventHandler(this));
-    }
+    public abstract void preInit(FMLPreInitializationEvent event);
 
-    public void sendTo(EntityPlayerMP player, ByteBuf buf) {
-        flanChannel.sendTo(new FMLProxyPacket(new PacketBuffer(buf), "flansmod"), player);
-    }
+    public abstract void init(FMLInitializationEvent event);
+
+    public abstract void syncConfig();
 }

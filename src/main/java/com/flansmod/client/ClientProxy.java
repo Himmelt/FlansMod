@@ -2,14 +2,13 @@ package com.flansmod.client;
 
 import com.flansmod.client.debug.*;
 import com.flansmod.client.gui.*;
-import com.flansmod.client.handler.ClientBusHandler;
-import com.flansmod.client.handler.ClientFMLHandler;
 import com.flansmod.client.model.*;
 import com.flansmod.common.CommonProxy;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.driveables.*;
 import com.flansmod.common.driveables.mechas.EntityMecha;
 import com.flansmod.common.driveables.mechas.MechaType;
+import com.flansmod.common.eventhandlers.FMLEventHandler;
 import com.flansmod.common.guns.*;
 import com.flansmod.common.guns.boxes.BlockGunBox;
 import com.flansmod.common.guns.boxes.GunBoxType;
@@ -27,29 +26,37 @@ import cpw.mods.fml.common.FMLModContainer;
 import cpw.mods.fml.common.MetadataCollection;
 import cpw.mods.fml.common.discovery.ContainerType;
 import cpw.mods.fml.common.discovery.ModCandidate;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import io.netty.buffer.ByteBuf;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.FMLEventChannel;
+import cpw.mods.fml.common.network.FMLNetworkEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
-import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Configuration;
 import org.apache.logging.log4j.Level;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import static com.flansmod.common.FlansMod.DEBUG;
+import static com.flansmod.common.FlansMod.configFile;
 
 public class ClientProxy extends CommonProxy {
-    public static String modelDir = "com.flansmod.client.model.";
+
+    private final FMLEventChannel flanChannel = NetworkRegistry.INSTANCE.newEventDrivenChannel("flansmod");
+
+    private static String modelDir = "com.flansmod.client.model.";
 
     /* These renderers handle rendering in hand items */
     public static RenderGun gunRenderer;
@@ -63,7 +70,6 @@ public class ClientProxy extends CommonProxy {
      */
     public List<File> contentPacks;
 
-    @Override
     public void load() {
         new FlansModClient().load();
         gunRenderer = new RenderGun();
@@ -374,13 +380,31 @@ public class ClientProxy extends CommonProxy {
         return (keyCode < 0 ? Mouse.isButtonDown(keyCode + 100) : Keyboard.isKeyDown(keyCode));
     }
 
-    public void onPreInit(FMLPreInitializationEvent event) {
-        super.onPreInit(event);
-        FMLCommonHandler.instance().bus().register(new ClientFMLHandler());
-        MinecraftForge.EVENT_BUS.register(new ClientBusHandler());
-        flanChannel.register(new ClientFMLHandler());
+    public void preInit(FMLPreInitializationEvent event) {
+        FMLCommonHandler.instance().bus().register(new FMLEventHandler());
+        flanChannel.register(this);
     }
 
-    public void sendTo(EntityPlayerMP player, ByteBuf buf) {
+    public void init(FMLInitializationEvent event) {
+    }
+
+    public void syncConfig() {
+        FlansMod.DEBUG = configFile.getBoolean("debugMode", Configuration.CATEGORY_GENERAL, FlansMod.DEBUG, "Debug Mode.");
+        if (configFile.hasChanged()) configFile.save();
+    }
+
+    @SubscribeEvent
+    public void onReceivePacket(FMLNetworkEvent.ClientCustomPacketEvent event) {
+        String content = event.packet.payload().toString(StandardCharsets.UTF_8);
+        if (event.packet.channel().equals("flansmod")) {
+            String[] ss = content.split("\\|");
+            if (ss.length == 5) {
+                FlansMod.recoilMark = ss[0];
+                FlansMod.accuracyMark = ss[1];
+                FlansMod.shootDelayMark = ss[2];
+                FlansMod.sneakingMark = ss[3];
+                FlansMod.sprintingMark = ss[4];
+            }
+        }
     }
 }

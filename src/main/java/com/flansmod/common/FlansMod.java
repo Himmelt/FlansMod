@@ -2,7 +2,6 @@ package com.flansmod.common;
 
 import com.flansmod.common.driveables.*;
 import com.flansmod.common.driveables.mechas.*;
-import com.flansmod.common.eventhandlers.BusEventHandler;
 import com.flansmod.common.guns.*;
 import com.flansmod.common.guns.boxes.BlockGunBox;
 import com.flansmod.common.guns.boxes.GunBoxType;
@@ -41,7 +40,6 @@ import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.ForgeChunkManager;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -67,7 +65,13 @@ import java.util.zip.ZipInputStream;
 public class FlansMod {
     //Core mod stuff
     public static boolean DEBUG = false;
+    public static String recoilMark = "Recoil";
+    public static String accuracyMark = "Accuracy";
+    public static String shootDelayMark = "ShootDelay";
+    public static String sneakingMark = "Sneaking";
+    public static String sprintingMark = "Sprinting";
     public static Configuration configFile;
+
     public static final String MODID = "flansmod";
     public static final String VERSION = "1.7.10-4.10.3";
     @Instance(MODID)
@@ -78,8 +82,13 @@ public class FlansMod {
     public static int teamsConfigInteger = 32;
     public static String teamsConfigString = "Hello!";
     public static boolean teamsConfigBoolean = false;
-    @SidedProxy(clientSide = "com.flansmod.client.ClientProxy", serverSide = "com.flansmod.common.CommonProxy")
+
+    @SidedProxy(
+            clientSide = "com.flansmod.client.ClientProxy",
+            serverSide = "com.flansmod.server.ServerProxy"
+    )
     public static CommonProxy proxy;
+
     //A standardised ticker for all bits of the mod to call upon if they need one
     public static int ticker = 0;
     public static long lastTime;
@@ -124,13 +133,6 @@ public class FlansMod {
     public static CreativeTabFlan tabFlanGuns = new CreativeTabFlan(0), tabFlanDriveables = new CreativeTabFlan(1),
             tabFlanParts = new CreativeTabFlan(2), tabFlanTeams = new CreativeTabFlan(3), tabFlanMechas = new CreativeTabFlan(4);
 
-
-    public static String recoilMark = "Recoil";
-    public static String accuracyMark = "Accuracy";
-    public static String shootDelayMark = "ShootDelay";
-    public static String sneakingMark = "Sneaking";
-    public static String sprintingMark = "Sprinting";
-
     private static Logger logger = LogManager.getLogger("FlansMod");
 
     /**
@@ -138,13 +140,10 @@ public class FlansMod {
      */
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        log("Preinitialising Flan's mod.");
+        log("PreInitialising Flan's mod.");
         configFile = new Configuration(event.getSuggestedConfigurationFile());
-        syncConfig();
+        proxy.syncConfig();
 
-        //TODO : Load properties
-        //configuration = new Configuration(event.getSuggestedConfigurationFile());
-        //loadProperties();
         flanDir = null;
         if (event.getSide() == Side.CLIENT) {
             try {
@@ -185,7 +184,7 @@ public class FlansMod {
         proxy.load();
         //Force Minecraft to reload all resources in order to load content pack resources.
         proxy.forceReload();
-        proxy.onPreInit(event);
+        proxy.preInit(event);
 
         log("Preinitializing complete.");
     }
@@ -254,24 +253,14 @@ public class FlansMod {
         //Config
         FMLCommonHandler.instance().bus().register(INSTANCE);
         //Starting the EventListener
-        MinecraftForge.EVENT_BUS.register(new BusEventHandler());
+        proxy.init(event);
         log("Loading complete.");
     }
 
-    /**
-     * The mod post-initialisation method
-     */
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         packetHandler.postInitialise();
-
         hooks.hook();
-				
-		/* TODO : ICBM
-		isICBMSentryLoaded = Loader.instance().isModLoaded("ICBM|Sentry");
-		
-		log("ICBM hooking complete.");
-		*/
     }
 
     @SubscribeEvent
@@ -279,31 +268,25 @@ public class FlansMod {
         for (int i = event.drops.size() - 1; i >= 0; i--) {
             EntityItem ent = event.drops.get(i);
             InfoType type = InfoType.getType(ent.getEntityItem());
-            if (type != null && !type.canDrop)
-                event.drops.remove(i);
+            if (type != null && !type.canDrop) event.drops.remove(i);
         }
     }
 
     @SubscribeEvent
     public void playerDrops(ItemTossEvent event) {
         InfoType type = InfoType.getType(event.entityItem.getEntityItem());
-        if (type != null && !type.canDrop)
-            event.setCanceled(true);
+        if (type != null && !type.canDrop) event.setCanceled(true);
     }
 
-    /**
-     * Teams command register method
-     */
     @EventHandler
-    public void registerCommand(FMLServerStartedEvent e) {
+    public void registerCommand(FMLServerStartedEvent event) {
         CommandHandler handler = ((CommandHandler) FMLCommonHandler.instance().getSidedDelegate().getServer().getCommandManager());
         handler.registerCommand(new CommandTeams());
     }
 
     @SubscribeEvent
     public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) {
-        if (eventArgs.modID.equals(MODID))
-            syncConfig();
+        if (eventArgs.modID.equals(MODID)) proxy.syncConfig();
     }
 
     @SubscribeEvent
@@ -502,25 +485,6 @@ public class FlansMod {
 
     public static PacketHandler getPacketHandler() {
         return packetHandler;
-    }
-
-    public static void syncConfig() {
-        DEBUG = configFile.getBoolean("debugMode", Configuration.CATEGORY_GENERAL, DEBUG, "Debug Mode.");
-        //generalConfigInteger = configFile.getInt("Config Integer", Configuration.CATEGORY_GENERAL, generalConfigInteger, 0, Integer.MAX_VALUE, "An Integer!");
-        //generalConfigString = configFile.getString("Config String", Configuration.CATEGORY_GENERAL, generalConfigString, "A String!");
-        addGunpowderRecipe = configFile.getBoolean("Gunpowder Recipe", Configuration.CATEGORY_GENERAL, addGunpowderRecipe, "Whether or not to add the extra gunpowder recipe (3 charcoal + 1 lightstone)");
-
-        //teamsConfigInteger = configFile.getInt("Config Integer", Configuration.CATEGORY_GENERAL, teamsConfigInteger, 0, Integer.MAX_VALUE, "An Integer!");
-        //teamsConfigString = configFile.getString("Config String", Configuration.CATEGORY_GENERAL, teamsConfigString, "A String!");
-        //teamsConfigBoolean = configFile.getBoolean("Config Boolean", Configuration.CATEGORY_GENERAL, teamsConfigBoolean, "A Boolean!");
-
-        recoilMark = configFile.getString("recoilMark", Configuration.CATEGORY_GENERAL, recoilMark, "Lore Recoil Keyword.");
-        accuracyMark = configFile.getString("accuracyMark", Configuration.CATEGORY_GENERAL, accuracyMark, "Lore Accuracy Keyword.");
-        shootDelayMark = configFile.getString("shootDelayMark", Configuration.CATEGORY_GENERAL, shootDelayMark, "Lore ShootDelay Keyword.");
-        sneakingMark = configFile.getString("sneakingMark", Configuration.CATEGORY_GENERAL, sneakingMark, "Lore Sneaking Keyword.");
-        sprintingMark = configFile.getString("sprintingMark", Configuration.CATEGORY_GENERAL, sprintingMark, "Lore Sprinting Keyword.");
-
-        if (configFile.hasChanged()) configFile.save();
     }
 
     public static void log(Level level, String message) {
