@@ -2,7 +2,7 @@ package com.flansmod.common;
 
 import com.flansmod.common.driveables.*;
 import com.flansmod.common.driveables.mechas.*;
-import com.flansmod.common.eventhandlers.PlayerDeathEventListener;
+import com.flansmod.common.eventhandlers.BusEventHandler;
 import com.flansmod.common.guns.*;
 import com.flansmod.common.guns.boxes.BlockGunBox;
 import com.flansmod.common.guns.boxes.GunBoxType;
@@ -41,6 +41,7 @@ import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -68,7 +69,7 @@ public class FlansMod {
     public static boolean DEBUG = false;
     public static Configuration configFile;
     public static final String MODID = "flansmod";
-    public static final String VERSION = "@VERSION@";
+    public static final String VERSION = "1.7.10-4.10.3";
     @Instance(MODID)
     public static FlansMod INSTANCE;
     public static int generalConfigInteger = 32;
@@ -253,7 +254,7 @@ public class FlansMod {
         //Config
         FMLCommonHandler.instance().bus().register(INSTANCE);
         //Starting the EventListener
-        new PlayerDeathEventListener();
+        MinecraftForge.EVENT_BUS.register(new BusEventHandler());
         log("Loading complete.");
     }
 

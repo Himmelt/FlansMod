@@ -29,10 +29,6 @@ sourceCompatibility = targetCompatibility = 1.7
 minecraft {
     version = "1.7.10-10.13.4.1614-1.7.10"
     runDir = "build/run"
-
-    replace "@MC_VERSION@", project.minecraft.version
-    replace "@VERSION@", project.version
-    replaceIn "FlansMod.java"
 }
 
 processResources {
