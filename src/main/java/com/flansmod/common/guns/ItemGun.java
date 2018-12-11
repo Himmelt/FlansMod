@@ -194,8 +194,9 @@ public class ItemGun extends Item implements IFlanItem {
                 //Get whether mice are held
                 lastRightMouseHeld = rightMouseHeld;
                 lastLeftMouseHeld = leftMouseHeld;
-                rightMouseHeld = Mouse.isButtonDown(1);
-                leftMouseHeld = Mouse.isButtonDown(0);
+                // exchange mouse key
+                rightMouseHeld = Mouse.isButtonDown(0);
+                leftMouseHeld = Mouse.isButtonDown(1);
 
 
                 boolean offHandFull = false;
@@ -265,7 +266,8 @@ public class ItemGun extends Item implements IFlanItem {
                     }
                 }
                 IScope currentScope = type.getCurrentScope(itemstack);
-                if (!offHandFull && (type.secondaryFunction == EnumSecondaryFunction.ADS_ZOOM || type.secondaryFunction == EnumSecondaryFunction.ZOOM) && Mouse.isButtonDown(0) && FlansModClient.scopeTime <= 0 && FMLClientHandler.instance().getClient().currentScreen == null) {
+                // change open scope to right key
+                if (!offHandFull && (type.secondaryFunction == EnumSecondaryFunction.ADS_ZOOM || type.secondaryFunction == EnumSecondaryFunction.ZOOM) && Mouse.isButtonDown(1) && FlansModClient.scopeTime <= 0 && FMLClientHandler.instance().getClient().currentScreen == null) {
                     if (FlansModClient.currentScope == null) {
                         FlansModClient.currentScope = currentScope;
                         FlansModClient.lastZoomLevel = currentScope.getZoomFactor();
@@ -649,7 +651,7 @@ public class ItemGun extends Item implements IFlanItem {
         }
     }
 
-    public ItemStack tryToShoot(ItemStack gunStack, GunType gunType, World world, EntityPlayerMP entityplayer, boolean left) {
+    private ItemStack tryToShoot(ItemStack gunStack, GunType gunType, World world, EntityPlayerMP entityplayer, boolean left) {
         if (type.deployable)
             return gunStack;
         PlayerData data = PlayerHandler.getPlayerData(entityplayer);

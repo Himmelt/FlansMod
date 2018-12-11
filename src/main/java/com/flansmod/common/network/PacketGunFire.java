@@ -17,9 +17,9 @@ public class PacketGunFire extends PacketBase {
     public PacketGunFire() {
     }
 
-    public PacketGunFire(boolean l, boolean h) {
-        left = l;
-        held = h;
+    public PacketGunFire(boolean left, boolean held) {
+        this.left = left;
+        this.held = held;
     }
 
     @Override

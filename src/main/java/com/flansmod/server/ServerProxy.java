@@ -3,7 +3,6 @@ package com.flansmod.server;
 import com.flansmod.common.CommonProxy;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.driveables.EntityDriveable;
-import com.flansmod.common.eventhandlers.BusEventHandler;
 import com.flansmod.common.eventhandlers.FMLEventHandler;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -19,7 +18,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.World;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 
 import java.nio.charset.StandardCharsets;
@@ -60,7 +58,6 @@ public class ServerProxy extends CommonProxy {
     }
 
     public void init(FMLInitializationEvent event) {
-        MinecraftForge.EVENT_BUS.register(new BusEventHandler());
     }
 
     public void syncConfig() {

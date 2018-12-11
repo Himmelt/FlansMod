@@ -3,6 +3,7 @@ package com.flansmod.common;
 import com.flansmod.common.driveables.*;
 import com.flansmod.common.driveables.mechas.ContainerMechaInventory;
 import com.flansmod.common.driveables.mechas.EntityMecha;
+import com.flansmod.common.eventhandlers.BusEventHandler;
 import com.flansmod.common.guns.ContainerGunModTable;
 import com.flansmod.common.guns.boxes.GunBoxType;
 import com.flansmod.common.network.PacketBreakSound;
@@ -19,6 +20,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -329,7 +331,9 @@ public abstract class CommonProxy {
 
     public abstract void preInit(FMLPreInitializationEvent event);
 
-    public abstract void init(FMLInitializationEvent event);
+    public void init(FMLInitializationEvent event) {
+        MinecraftForge.EVENT_BUS.register(new BusEventHandler());
+    }
 
     public abstract void syncConfig();
 }

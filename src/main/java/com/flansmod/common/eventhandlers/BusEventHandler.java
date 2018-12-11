@@ -47,7 +47,7 @@ public class BusEventHandler {
     }
 
     @SubscribeEvent
-    public void on(BlockEvent.BreakEvent event) {
+    public void onBlockBreak(BlockEvent.BreakEvent event) {
         EntityPlayer player = event.getPlayer();
         if (player.capabilities.isCreativeMode) {
             ItemStack stack = player.getHeldItem();
