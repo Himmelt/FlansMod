@@ -352,7 +352,7 @@ public class TickHandlerClient {
             drawNonStandardTexturedRect(screenWidth / 2 - 127, screenHeight / 2 - 127, 256 * offset, 0, 256, 256, 1024, 256);
             return true;
         } else if (bindTexture(theMc.getTextureManager(), defaultCrossHair)) {
-            drawNonStandardTexturedRect(screenWidth / 2 - 127, screenHeight / 2 - 127, 256 * offset, 0, 256, 256, 768, 256);
+            drawNonStandardTexturedRect(screenWidth / 2 - 127, screenHeight / 2 - 127, 256 * offset, 0, 256, 256, 1024, 256);
             return true;
         } else return false;
     }
