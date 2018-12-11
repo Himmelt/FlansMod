@@ -131,8 +131,12 @@ public class FlansMod {
     public static ArrayList<ItemTool> toolItems = new ArrayList<ItemTool>();
     public static ArrayList<ItemTeamArmour> armourItems = new ArrayList<ItemTeamArmour>();
     public static ArrayList<BlockArmourBox> armourBoxBlocks = new ArrayList<BlockArmourBox>();
-    public static CreativeTabFlan tabFlanGuns = new CreativeTabFlan(0), tabFlanDriveables = new CreativeTabFlan(1),
-            tabFlanParts = new CreativeTabFlan(2), tabFlanTeams = new CreativeTabFlan(3), tabFlanMechas = new CreativeTabFlan(4);
+
+    public static CreativeTabFlan tabFlanGuns = new CreativeTabFlan(0);
+    public static CreativeTabFlan tabFlanDriveables = new CreativeTabFlan(1);
+    public static CreativeTabFlan tabFlanParts = new CreativeTabFlan(2);
+    public static CreativeTabFlan tabFlanTeams = new CreativeTabFlan(3);
+    public static CreativeTabFlan tabFlanMechas = new CreativeTabFlan(4);
 
     private static Logger logger = LogManager.getLogger("FlansMod");
 
