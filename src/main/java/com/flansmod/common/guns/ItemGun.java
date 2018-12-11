@@ -145,7 +145,7 @@ public class ItemGun extends Item implements IFlanItem {
             String line = attachment.name;
             lines.add(line);
         }
-        for (int i = 0; i < type.numAmmoItemsInGun; i++) {
+/*        for (int i = 0; i < type.numAmmoItemsInGun; i++) {
             ItemStack bulletStack = getBulletItemStack(stack, i);
             if (bulletStack != null && bulletStack.getItem() instanceof ItemBullet) {
                 BulletType bulletType = ((ItemBullet) bulletStack.getItem()).type;
@@ -153,7 +153,7 @@ public class ItemGun extends Item implements IFlanItem {
                 String line = bulletType.name + " " + (bulletStack.getMaxDamage() - bulletStack.getItemDamage()) + "/" + bulletStack.getMaxDamage();
                 lines.add(line);
             }
-        }
+        }*/
     }
 
     @SideOnly(Side.CLIENT)
@@ -295,7 +295,7 @@ public class ItemGun extends Item implements IFlanItem {
      *
      * @return whether to consume the gun item
      */
-    public boolean clientSideShoot(EntityPlayer player, ItemStack stack, GunType gunType, boolean left) {
+    private boolean clientSideShoot(EntityPlayer player, ItemStack stack, GunType gunType, boolean left) {
         PlayerData data = PlayerHandler.getPlayerData(player);
         if (FlansModClient.shootTime(left) <= 0) {
             boolean hasAmmo = false;
@@ -347,7 +347,7 @@ public class ItemGun extends Item implements IFlanItem {
         return false;
     }
 
-    public void onUpdateServer(ItemStack itemstack, World world, Entity entity, int i, boolean flag) {
+    private void onUpdateServer(ItemStack itemstack, World world, Entity entity, int i, boolean flag) {
         if (entity instanceof EntityPlayerMP) {
             EntityPlayerMP player = (EntityPlayerMP) entity;
             PlayerData data = PlayerHandler.getPlayerData(player);
@@ -878,8 +878,9 @@ public class ItemGun extends Item implements IFlanItem {
         }
         //Stop the gun bobbing up and down when holding shoot and looking at a block
         if (world.isRemote) {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++) {
                 Minecraft.getMinecraft().entityRenderer.itemRenderer.updateEquippedItem();
+            }
         }
         return itemstack;
     }

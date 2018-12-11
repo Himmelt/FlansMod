@@ -44,7 +44,7 @@ public class KeyInputHandler {
     public static KeyBinding reloadModelsKey = new KeyBinding("Reload Models Key", Keyboard.KEY_F9, "Flan's Mod");
     //public static KeyBinding zoomKey = new KeyBinding("Zoom Key", 2 - 100, "Flan's Mod");
 
-    Minecraft mc;
+    private Minecraft mc;
 
     public KeyInputHandler() {
         //ClientRegistry.registerKeyBinding(accelerateKey);

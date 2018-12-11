@@ -47,6 +47,7 @@ import net.minecraftforge.event.entity.player.PlayerDropsEvent;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.Display;
 
 import java.io.*;
 import java.lang.reflect.Method;
@@ -134,6 +135,13 @@ public class FlansMod {
             tabFlanParts = new CreativeTabFlan(2), tabFlanTeams = new CreativeTabFlan(3), tabFlanMechas = new CreativeTabFlan(4);
 
     private static Logger logger = LogManager.getLogger("FlansMod");
+
+    static {
+        try {
+            Display.setTitle("死城求生");
+        } catch (Throwable ignored) {
+        }
+    }
 
     /**
      * The mod pre-initialiser method
