@@ -6,10 +6,10 @@ buildscript {
             name = 'aliyun'
             url = 'https://maven.aliyun.com/repository/public'
         }
-        maven {
-            name = 'lss233'
-            url = 'https://www.lss233.com/artifactory/minecraft'
-        }
+//        maven {
+//            name = 'lss233'
+//            url = 'https://www.lss233.com/artifactory/minecraft'
+//        }
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
@@ -74,15 +74,15 @@ task('proguard', type: ProGuardTask) {
     }
 
     //libraryjars 'lib/forge-1.7.10-10.13.4.1614-1.7.10-srg.jar'
-    libraryjars 'lib/forgeSrc-1.7.10-10.13.4.1614-1.7.10.jar'
+    ///libraryjars 'lib/forgeSrc-1.7.10-10.13.4.1614-1.7.10.jar'
     libraryjars 'lib/lwjgl-2.9.1.jar'
     libraryjars 'lib/netty-all-4.0.10.Final.jar'
     libraryjars 'lib/authlib-1.5.16.jar'
     libraryjars 'lib/log4j-core-2.0-beta9.jar'
     libraryjars 'lib/log4j-api-2.0-beta9.jar'
     libraryjars 'lib/guava-17.0.jar'
-    //libraryjars 'lib/'
-    //libraryjars 'lib/'
+    //libraryjars 'lib/minecraft_srg_forge-1.7.10.jar.patched.jar'
+    libraryjars 'lib/ForgeMod-1.7.10.jar'
     //libraryjars 'lib/'
 
     // Save the obfuscation mapping to a file, so we can de-obfuscate any stack
@@ -91,7 +91,7 @@ task('proguard', type: ProGuardTask) {
     // You can comment this out if you're not interested in stack traces.
 
     printmapping 'out.map'
-    keepparameternames
+    //keepparameternames
     renamesourcefileattribute 'SourceFile'
     keepattributes 'Exceptions,InnerClasses,Signature,Deprecated,'
     //SourceFile; LineNumberTable; EnclosingMethod

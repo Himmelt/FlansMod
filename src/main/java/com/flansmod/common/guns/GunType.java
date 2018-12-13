@@ -287,7 +287,7 @@ public class GunType extends InfoType implements IScope {
     public float knockbackModifier = 0F;
 
     private static final Pattern COLOR_PATTERN = Pattern.compile("(?i)\\u00A7[0-9A-FK-OR]");
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("[+-]?[0-9]+(.\\d+)?%");
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("[+-]?\\d+(\\.\\d+)?%");
 
     public GunType(TypeFile file) {
         super(file);

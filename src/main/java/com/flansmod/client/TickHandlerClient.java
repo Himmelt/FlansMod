@@ -62,13 +62,13 @@ public class TickHandlerClient {
 
     private final Minecraft theMc = Minecraft.getMinecraft();
 
-    public static int lightOverrideRefreshRate = 5;
-    public static ResourceLocation crossHair = null;
-    public static ArrayList<Vector3i> blockLightOverrides = new ArrayList<>();
+    private static int lightOverrideRefreshRate = 5;
+    private static ResourceLocation crossHair = null;
+    private static ArrayList<Vector3i> blockLightOverrides = new ArrayList<>();
     private static RenderItem itemRenderer = new RenderItem();
     private static List<KillMessage> killMessages = new ArrayList<>();
-    public static final ResourceLocation offHand = new ResourceLocation("flansmod", "gui/offHand.png");
-    public static final ResourceLocation defaultCrossHair = new ResourceLocation("flansmod", "textures/crosshairs/defaultCrosshair.png");
+    private static final ResourceLocation offHand = new ResourceLocation("flansmod", "gui/offHand.png");
+    private static final ResourceLocation defaultCrossHair = new ResourceLocation("flansmod", "textures/crosshairs/defaultCrosshair.png");
 
     public TickHandlerClient() {
         FMLCommonHandler.instance().bus().register(this);
@@ -76,7 +76,7 @@ public class TickHandlerClient {
     }
 
     @SubscribeEvent
-    public void eventHandler(MouseEvent event) {
+    private void eventHandler(MouseEvent event) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player.getCurrentEquippedItem() != null && player.getCurrentEquippedItem().getItem() instanceof ItemGun) {
             if (((ItemGun) player.getCurrentEquippedItem().getItem()).type.oneHanded && Keyboard.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindSneak.getKeyCode()) && Math.abs(event.dwheel) > 0) {
@@ -86,7 +86,7 @@ public class TickHandlerClient {
     }
 
     @SubscribeEvent
-    public void eventHandler(RenderGameOverlayEvent event) {
+    private void eventHandler(RenderGameOverlayEvent event) {
         ItemStack heldItem = theMc.thePlayer.getHeldItem();
         if (heldItem != null && heldItem.getItem() instanceof ItemGun) {
             crossHair = FlansModResourceHandler.getCrossHairTexture(((ItemGun) heldItem.getItem()).type);
@@ -147,10 +147,10 @@ public class TickHandlerClient {
                 theMc.renderEngine.bindTexture(FlansModResourceHandler.getScope(overlayTexture));
 
                 tessellator.startDrawingQuads();
-                tessellator.addVertexWithUV(i / 2 - 2 * j, j, -90D, 0.0D, 1.0D);
-                tessellator.addVertexWithUV(i / 2 + 2 * j, j, -90D, 1.0D, 1.0D);
-                tessellator.addVertexWithUV(i / 2 + 2 * j, 0.0D, -90D, 1.0D, 0.0D);
-                tessellator.addVertexWithUV(i / 2 - 2 * j, 0.0D, -90D, 0.0D, 0.0D);
+                tessellator.addVertexWithUV(i / 2.0 - 2 * j, j, -90D, 0.0D, 1.0D);
+                tessellator.addVertexWithUV(i / 2.0 + 2 * j, j, -90D, 1.0D, 1.0D);
+                tessellator.addVertexWithUV(i / 2.0 + 2 * j, 0.0D, -90D, 1.0D, 0.0D);
+                tessellator.addVertexWithUV(i / 2.0 - 2 * j, 0.0D, -90D, 0.0D, 0.0D);
                 tessellator.draw();
                 GL11.glDepthMask(true);
                 GL11.glEnable(2929 /* GL_DEPTH_TEST */);
@@ -371,7 +371,7 @@ public class TickHandlerClient {
     }
 
     @SubscribeEvent
-    public void renderTick(TickEvent.RenderTickEvent event) {
+    private void renderTick(TickEvent.RenderTickEvent event) {
         switch (event.phase) {
             case START:
                 RenderGun.smoothing = event.renderTickTime;
@@ -384,7 +384,7 @@ public class TickHandlerClient {
     }
 
     @SubscribeEvent
-    public void clientTick(TickEvent.ClientTickEvent event) {
+    private void clientTick(TickEvent.ClientTickEvent event) {
         switch (event.phase) {
             case START:
                 clientTickStart(Minecraft.getMinecraft());
@@ -398,7 +398,7 @@ public class TickHandlerClient {
     /**
      * Handle flashlight block light override
      */
-    public void clientTickStart(Minecraft mc) {
+    private void clientTickStart(Minecraft mc) {
         if (FlansMod.ticker % lightOverrideRefreshRate == 0 && mc.theWorld != null) {
             //Check graphics setting and adjust refresh rate
             lightOverrideRefreshRate = mc.gameSettings.fancyGraphics ? 10 : 20;
@@ -508,7 +508,7 @@ public class TickHandlerClient {
         }
     }
 
-    public void clientTickEnd(Minecraft minecraft) { /* Client side only */
+    private void clientTickEnd(Minecraft minecraft) { /* Client side only */
         for (int i = 0; i < killMessages.size(); i++) {
             killMessages.get(i).timer--;
             if (killMessages.get(i).timer == 0) {
@@ -519,7 +519,7 @@ public class TickHandlerClient {
         FlansModClient.tick();
     }
 
-    public void renderTickStart(Minecraft mc, float smoothing) {
+    private void renderTickStart(Minecraft mc, float smoothing) {
         // CAPTURE MOUSE INPUT!
         if (mc.currentScreen == null && FlansModClient.controlModeMouse) {
             MouseHelper mouse = mc.mouseHelper;
@@ -534,7 +534,7 @@ public class TickHandlerClient {
         FlansModClient.renderTick(smoothing);
     }
 
-    public void renderTickEnd(Minecraft mc) {
+    private void renderTickEnd(Minecraft mc) {
 		/*
 		ScaledResolution scaledresolution = new ScaledResolution(FlansModClient.minecraft, FlansModClient.minecraft.displayWidth, FlansModClient.minecraft.displayHeight);
 		int i = scaledresolution.getScaledWidth();
@@ -598,7 +598,7 @@ public class TickHandlerClient {
     }
 
     private static class KillMessage {
-        public KillMessage(boolean head, InfoType infoType, String killer, String killed) {
+        KillMessage(boolean head, InfoType infoType, String killer, String killed) {
             headshot = head;
             killerName = killer;
             killedName = killed;
@@ -607,11 +607,11 @@ public class TickHandlerClient {
             timer = 200;
         }
 
-        public String killerName;
-        public String killedName;
+        String killerName;
+        String killedName;
         public InfoType weapon;
-        public int timer;
+        int timer;
         public int line;
-        public boolean headshot;
+        boolean headshot;
     }
 }
