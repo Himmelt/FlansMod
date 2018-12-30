@@ -76,7 +76,7 @@ public class TickHandlerClient {
     }
 
     @SubscribeEvent
-    private void eventHandler(MouseEvent event) {
+    public void eventHandler(MouseEvent event) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (player.getCurrentEquippedItem() != null && player.getCurrentEquippedItem().getItem() instanceof ItemGun) {
             if (((ItemGun) player.getCurrentEquippedItem().getItem()).type.oneHanded && Keyboard.isKeyDown(Minecraft.getMinecraft().gameSettings.keyBindSneak.getKeyCode()) && Math.abs(event.dwheel) > 0) {
@@ -86,7 +86,7 @@ public class TickHandlerClient {
     }
 
     @SubscribeEvent
-    private void eventHandler(RenderGameOverlayEvent event) {
+    public void eventHandler(RenderGameOverlayEvent event) {
         ItemStack heldItem = theMc.thePlayer.getHeldItem();
         if (heldItem != null && heldItem.getItem() instanceof ItemGun) {
             crossHair = FlansModResourceHandler.getCrossHairTexture(((ItemGun) heldItem.getItem()).type);
@@ -371,7 +371,7 @@ public class TickHandlerClient {
     }
 
     @SubscribeEvent
-    private void renderTick(TickEvent.RenderTickEvent event) {
+    public void renderTick(TickEvent.RenderTickEvent event) {
         switch (event.phase) {
             case START:
                 RenderGun.smoothing = event.renderTickTime;
@@ -384,7 +384,7 @@ public class TickHandlerClient {
     }
 
     @SubscribeEvent
-    private void clientTick(TickEvent.ClientTickEvent event) {
+    public void clientTick(TickEvent.ClientTickEvent event) {
         switch (event.phase) {
             case START:
                 clientTickStart(Minecraft.getMinecraft());

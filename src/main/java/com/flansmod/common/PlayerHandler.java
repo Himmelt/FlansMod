@@ -51,8 +51,15 @@ public class PlayerHandler {
 
     public void serverTick() {
         for (WorldServer world : MinecraftServer.getServer().worldServers) {
-            for (Object player : world.playerEntities) {
-                getPlayerData((EntityPlayer) player).tick((EntityPlayer) player);
+            try {
+                ArrayList<?> list = new ArrayList<>();
+                list.addAll(world.playerEntities);
+                for (Object player : list) {
+                    getPlayerData((EntityPlayer) player).tick((EntityPlayer) player);
+                }
+            } catch (Throwable e) {
+                System.out.println("======================== ! ! ! ! ! ========================");
+                e.printStackTrace();
             }
         }
     }
