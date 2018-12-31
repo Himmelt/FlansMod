@@ -52,10 +52,7 @@ import org.apache.logging.log4j.Level;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class ItemGun extends Item implements IFlanItem {
     public GunType type;
@@ -64,6 +61,7 @@ public class ItemGun extends Item implements IFlanItem {
     private static boolean leftMouseHeld;
     private static boolean lastLeftMouseHeld;
     public int soundDelay;
+    private static final Random rand = new Random();
 
     public HashMap<String, IIcon> icons = new HashMap<String, IIcon>();
 
@@ -329,6 +327,14 @@ public class ItemGun extends Item implements IFlanItem {
                 int pumpTime = gunType.model == null ? 1 : gunType.model.pumpTime;
                 animations.doShoot(pumpDelay, pumpTime);
                 FlansModClient.playerRecoil += gunType.getRecoil(stack, player);
+
+
+                double yaw = rand.nextGaussian() * FlansModClient.playerRecoil;
+                double pitch = rand.nextGaussian() * FlansModClient.playerRecoil;
+                player.rotationYaw += yaw > 180 ? 180 : yaw < -180 ? -180 : yaw;
+                player.rotationPitch += pitch > 90 ? 90 : pitch < -90 ? -90 : pitch;
+                //System.out.println("Yaw:" + yaw + "| Pitch:" + pitch);
+
                 if (left) FlansModClient.shootTimeLeft = gunType.getShootDelay(stack, player);
                 else FlansModClient.shootTimeRight = gunType.getShootDelay(stack, player);
                 if (gunType.consumeGunUponUse) return true;
@@ -813,15 +819,35 @@ public class ItemGun extends Item implements IFlanItem {
             PacketPlaySound.sendSoundPacket(entityplayer.posX, entityplayer.posY, entityplayer.posZ, FlansMod.soundRange, entityplayer.dimension, gunType.shootSound, gunType.distortSound, silenced);
             soundDelay = gunType.shootSoundLength;
         }
+
+
+        for (int k = 0; k < gunType.numBullets; ++k) {
+            ItemShootable bulletstack = (ItemShootable) bulletStack.getItem();
+            float bulletSpread = (entityplayer.isSneaking() ? 0.7F : 1.0F) * gunType.getSpread(stack, entityplayer);
+            float damage = gunType.getDamage(stack);
+            float bulletSpeed = gunType.getBulletSpeed(stack);
+            boolean b = gunType.numBullets > 1;
+            int itemDamage = bulletStack.getItemDamage();
+            if (world.isRemote) {
+                Entity entity = bulletstack.getEntity(world, entityplayer, bulletSpread, damage, bulletSpeed, b, itemDamage, gunType);
+                world.spawnEntityInWorld(entity);
+                //System.out.println("客户端创建子弹!");
+            } else {
+                RunningBullet running = bulletstack.getBullet(world, entityplayer, bulletSpread, damage, bulletSpeed, b, itemDamage, gunType);
+                RunningBulletManager.getManager(world).spawn(running);
+                //System.out.println("服务端创建子弹!");
+            }
+        }
+
         if (!world.isRemote) {
             // Spawn the bullet entities
 
-            for (int k = 0; k < gunType.numBullets; k++) {
+/*            for (int k = 0; k < gunType.numBullets; k++) {
                 world.spawnEntityInWorld(((ItemShootable) bulletStack.getItem()).getEntity(world, entityplayer,
                         (entityplayer.isSneaking() ? 0.7F : 1F) * gunType.getSpread(stack, entityplayer),
                         gunType.getDamage(stack), gunType.getBulletSpeed(stack),
                         gunType.numBullets > 1, bulletStack.getItemDamage(), gunType));
-            }
+            }*/
             // Drop item on shooting if bullet requires it
             if (bullet.dropItemOnShoot != null && !entityplayer.capabilities.isCreativeMode)
                 dropItem(world, entityplayer, bullet.dropItemOnShoot);

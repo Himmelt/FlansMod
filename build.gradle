@@ -23,7 +23,7 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.7.10-4.10.3"
+version = "1.7.10-4.10.4"
 group = "com.flansmod"
 
 sourceCompatibility = targetCompatibility = 1.7

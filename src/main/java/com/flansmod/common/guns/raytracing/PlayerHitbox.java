@@ -7,6 +7,7 @@ import com.flansmod.common.RotatedAxes;
 import com.flansmod.common.guns.EntityBullet;
 import com.flansmod.common.guns.GunType;
 import com.flansmod.common.guns.ItemGun;
+import com.flansmod.common.guns.RunningBullet;
 import com.flansmod.common.teams.TeamsManager;
 import com.flansmod.common.vector.Vector3f;
 import cpw.mods.fml.relauncher.Side;
@@ -17,6 +18,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+
+import java.util.Iterator;
 
 public class PlayerHitbox {
     /**
@@ -223,6 +226,83 @@ public class PlayerHitbox {
             }
             default:
                 return penetratingPower;
+        }
+    }
+
+    public float hitByBullet(RunningBullet bullet, float penetratingPower) {
+        if (bullet.type.setEntitiesOnFire) {
+            this.player.setFire(20);
+        }
+
+        Iterator it = bullet.type.hitEffects.iterator();
+
+        while (it.hasNext()) {
+            PotionEffect effect = (PotionEffect) it.next();
+            this.player.addPotionEffect(new PotionEffect(effect));
+        }
+
+        float damageModifier = bullet.type.penetratingPower < 0.1F ? penetratingPower / bullet.type.penetratingPower : 1.0F;
+        switch (this.type) {
+            case BODY:
+            case LEFTITEM:
+            case RIGHTITEM:
+            default:
+                break;
+            case HEAD:
+                damageModifier *= 2.0F;
+                break;
+            case LEFTARM:
+                damageModifier *= 0.6F;
+                break;
+            case RIGHTARM:
+                damageModifier *= 0.6F;
+        }
+
+        GunType gunType;
+        switch (this.type) {
+            case BODY:
+            case HEAD:
+            case LEFTARM:
+            case RIGHTARM:
+                float hitDamage = bullet.damage * (float) bullet.type.damageVsLiving * damageModifier;
+                DamageSource damagesource = bullet.owner == null ? DamageSource.generic : bullet.getBulletDamage(this.type == EnumHitboxType.HEAD);
+                if (!this.player.worldObj.isRemote && hitDamage == 0.0F && TeamsManager.getInstance().currentRound != null) {
+                    EntityPlayerMP var10001 = (EntityPlayerMP) this.player;
+                    TeamsManager.getInstance().currentRound.gametype.playerAttacked(var10001, damagesource);
+                }
+
+                if (this.player.attackEntityFrom(damagesource, hitDamage)) {
+                    ++this.player.arrowHitTimer;
+                    this.player.hurtResistantTime = this.player.maxHurtResistantTime / 2;
+                }
+
+                return penetratingPower - 1.0F;
+            case LEFTITEM:
+                PlayerData data = PlayerHandler.getPlayerData(this.player);
+                if (data.offHandGunSlot != 0) {
+                    gunType = null;
+                    ItemStack leftHandStack;
+                    if (this.player.worldObj.isRemote && !FlansMod.proxy.isThePlayer(this.player)) {
+                        leftHandStack = data.offHandGunStack;
+                    } else {
+                        leftHandStack = this.player.inventory.getStackInSlot(data.offHandGunSlot - 1);
+                    }
+
+                    if (leftHandStack != null && leftHandStack.getItem() instanceof ItemGun) {
+                        GunType leftGunType = ((ItemGun) leftHandStack.getItem()).type;
+                        return penetratingPower - leftGunType.shieldDamageAbsorption;
+                    }
+                }
+            default:
+                return penetratingPower;
+            case RIGHTITEM:
+                ItemStack currentStack = this.player.getCurrentEquippedItem();
+                if (currentStack != null && currentStack.getItem() instanceof ItemGun) {
+                    gunType = ((ItemGun) currentStack.getItem()).type;
+                    return penetratingPower - gunType.shieldDamageAbsorption;
+                } else {
+                    return penetratingPower;
+                }
         }
     }
 }

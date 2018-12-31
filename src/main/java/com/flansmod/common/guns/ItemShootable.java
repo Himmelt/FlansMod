@@ -42,4 +42,7 @@ public abstract class ItemShootable extends Item {
     public abstract EntityShootable getEntity(World worldObj, EntityLivingBase player,
                                               float bulletSpread, float damage, float bulletSpeed, boolean b,
                                               int itemDamage, InfoType shotFrom);
+
+    public abstract RunningBullet getBullet(World var1, EntityLivingBase var2, float var3, float var4, float var5, boolean var6, int var7, InfoType var8);
+
 }

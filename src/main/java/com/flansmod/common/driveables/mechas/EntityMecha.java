@@ -375,7 +375,7 @@ public class EntityMecha extends EntityDriveable {
         if (!worldObj.isRemote)
             for (int k = 0; k < gunType.numBullets; k++)
                 worldObj.spawnEntityInWorld(((ItemBullet) bulletStack.getItem()).getEntity(worldObj, bulletOrigin, armVector, (EntityLivingBase) (seats[0].riddenByEntity),
-                        gunType.getSpread(stack, null) / 2F,
+                        gunType.getSpread(stack) / 2F,
                         gunType.getDamage(stack),
                         gunType.getBulletSpeed(stack),
                         bulletStack.getItemDamage(), mechaType));

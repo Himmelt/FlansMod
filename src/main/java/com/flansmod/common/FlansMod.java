@@ -74,7 +74,7 @@ public class FlansMod {
     public static Configuration configFile;
 
     public static final String MODID = "flansmod";
-    public static final String VERSION = "1.7.10-4.10.3";
+    public static final String VERSION = "1.7.10-4.10.4";
     @Instance(MODID)
     public static FlansMod INSTANCE;
     public static int generalConfigInteger = 32;

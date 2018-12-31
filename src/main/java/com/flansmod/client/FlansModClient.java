@@ -269,12 +269,11 @@ public class FlansModClient extends FlansMod {
             shootTimeRight--;
         if (scopeTime > 0)
             scopeTime--;
-        if (playerRecoil > 0)
-            playerRecoil *= 0.8F;
-        minecraft.thePlayer.rotationPitch -= playerRecoil;
+        if (playerRecoil > 0) playerRecoil *= 0.8F;
+        //minecraft.thePlayer.rotationPitch -= playerRecoil;
         antiRecoil += playerRecoil;
 
-        minecraft.thePlayer.rotationPitch += antiRecoil * 0.2F;
+        //minecraft.thePlayer.rotationPitch += antiRecoil * 0.2F;
         antiRecoil *= 0.8F;
 
         //Update gun animations for the gun in hand

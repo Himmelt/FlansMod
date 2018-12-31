@@ -689,6 +689,10 @@ public class GunType extends InfoType implements IScope {
         return stackDamage;
     }
 
+    public float getSpread(ItemStack stack) {
+        return getSpread(stack, null);
+    }
+
     /**
      * Get the bullet spread of a specific gun, taking into account attachments
      */

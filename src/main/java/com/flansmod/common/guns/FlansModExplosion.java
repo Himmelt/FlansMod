@@ -53,6 +53,31 @@ public class FlansModExplosion extends Explosion {
         }
     }
 
+    public FlansModExplosion(World w, RunningBullet e, EntityPlayer p, InfoType t, double x, double y, double z, float r, boolean breakBlocks) {
+        super(w, p, x, y, z, r);
+        this.radius = r;
+        this.worldObj = w;
+        this.type = t;
+        this.player = p;
+        this.isFlaming = false;
+        this.isSmoking = breakBlocks;
+        this.doExplosionA();
+        this.doExplosionB(true);
+        if (!this.worldObj.isRemote) {
+            if (!breakBlocks) {
+                this.affectedBlockPositions.clear();
+            }
+
+            for (Object playerEntity : this.worldObj.playerEntities) {
+                EntityPlayer entityplayer = (EntityPlayer) playerEntity;
+                if (entityplayer.getDistanceSq(x, y, z) < 4096.0D) {
+                    ((EntityPlayerMP) entityplayer).playerNetServerHandler.sendPacket(new S27PacketExplosion(x, y, z, r, this.affectedBlockPositions, (Vec3) this.func_77277_b().get(entityplayer)));
+                }
+            }
+        }
+
+    }
+
     @Override
     public void doExplosionA() {
         float f = explosionSize;
@@ -189,7 +214,7 @@ public class FlansModExplosion extends Explosion {
         return playerLocations;
     }
 
-    public EntityLivingBase func_94613_c() {
+    public EntityLivingBase getExplosivePlacedBy() {
         return exploder == null ? null : (exploder instanceof EntityTNTPrimed ? ((EntityTNTPrimed) exploder).getTntPlacedBy() : (exploder instanceof EntityLivingBase ? (EntityLivingBase) exploder : null));
     }
 }

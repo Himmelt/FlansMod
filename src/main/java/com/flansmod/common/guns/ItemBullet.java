@@ -90,4 +90,8 @@ public class ItemBullet extends ItemShootable implements IFlanItem {
     public InfoType getInfoType() {
         return type;
     }
+
+    public RunningBullet getBullet(World worldObj, EntityLivingBase player, float bulletSpread, float damage, float bulletSpeed, boolean b, int itemDamage, InfoType shotFrom) {
+        return new RunningBullet(worldObj, player, bulletSpread, damage, this.type, bulletSpeed, b, shotFrom);
+    }
 }
