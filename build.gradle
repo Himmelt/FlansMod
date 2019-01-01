@@ -49,6 +49,24 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
+task serverJar(type: Jar, dependsOn: reobf) {
+    classifier = 'server'
+    from(zipTree(jar.getArchivePath()))
+    exclude 'com/**/client/', 'assets/**/gui/', 'assets/**/skins/', 'assets/**/teamsMod/', 'assets/**/textures/'
+}
+
+task clientJar(type: Jar, dependsOn: reobf) {
+    classifier = 'client'
+    from(zipTree(jar.getArchivePath()))//, sourceSets.main.resources
+    exclude 'com/flansmod/server/'
+}
+
+artifacts {
+    archives jar
+    archives serverJar
+    archives clientJar
+}
+
 // Define a ProGuard task.
 task('proguard', type: ProGuardTask) {
 
@@ -60,8 +78,8 @@ task('proguard', type: ProGuardTask) {
     // Specify the input jars, output jars, and library jars.
     // In this case, the input jar is the program library that we want to process.
 
-    injars 'build/libs/' + project.name + '-' + project.version + '.jar'
-    outjars 'build/libs/' + project.name + '-' + project.version + '-obf.jar'
+    injars 'build/libs/' + project.name + '-' + project.version + '-client.jar'
+    outjars 'build/libs/' + project.name + '-' + project.version + '-client-obf.jar'
 
     // Automatically handle the Java version of this build.
     if (System.getProperty('java.version').startsWith('1.')) {
@@ -90,7 +108,7 @@ task('proguard', type: ProGuardTask) {
     // tables to get line numbers in the stack traces.
     // You can comment this out if you're not interested in stack traces.
 
-    printmapping 'out.map'
+    printmapping 'build/out.map'
     //keepparameternames
     renamesourcefileattribute 'SourceFile'
     keepattributes 'Exceptions,InnerClasses,Signature,Deprecated,'
@@ -151,5 +169,5 @@ task('proguard', type: ProGuardTask) {
     // keep 'public class * implements com.example.MyInterface'
 
     keep 'class net.** { *; }'
-    
+
 }

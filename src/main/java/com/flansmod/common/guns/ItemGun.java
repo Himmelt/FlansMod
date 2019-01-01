@@ -331,6 +331,8 @@ public class ItemGun extends Item implements IFlanItem {
 
                 double yaw = rand.nextGaussian() * FlansModClient.playerRecoil;
                 double pitch = rand.nextGaussian() * FlansModClient.playerRecoil;
+                yaw = yaw / 2.0;
+                pitch = pitch / 2.0;
                 player.rotationYaw += yaw > 180 ? 180 : yaw < -180 ? -180 : yaw;
                 player.rotationPitch += pitch > 90 ? 90 : pitch < -90 ? -90 : pitch;
                 //System.out.println("Yaw:" + yaw + "| Pitch:" + pitch);
