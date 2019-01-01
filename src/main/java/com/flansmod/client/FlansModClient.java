@@ -64,6 +64,8 @@ public class FlansModClient extends FlansMod {
      */
     public static int shootTimeLeft, shootTimeRight;
 
+    public static int fireTicks = 0;
+
     //Recoil variables
     /**
      * The recoil applied to the player view by shooting
@@ -261,6 +263,7 @@ public class FlansModClient extends FlansMod {
                 minecraft.displayGuiScreen(new GuiTeamScores());
         }
 
+        if (fireTicks > 0) fireTicks--;
 
         // Guns
         if (shootTimeLeft > 0)
@@ -269,12 +272,12 @@ public class FlansModClient extends FlansMod {
             shootTimeRight--;
         if (scopeTime > 0)
             scopeTime--;
-        if (playerRecoil > 0) playerRecoil *= 0.8F;
+        //if (playerRecoil > 0) playerRecoil *= 0.8F;
         //minecraft.thePlayer.rotationPitch -= playerRecoil;
-        antiRecoil += playerRecoil;
+        //antiRecoil += playerRecoil;
 
         //minecraft.thePlayer.rotationPitch += antiRecoil * 0.2F;
-        antiRecoil *= 0.8F;
+        //antiRecoil *= 0.8F;
 
         //Update gun animations for the gun in hand
         for (GunAnimations g : gunAnimationsRight.values()) {

@@ -326,15 +326,14 @@ public class ItemGun extends Item implements IFlanItem {
                 int pumpDelay = gunType.model == null ? 0 : gunType.model.pumpDelay;
                 int pumpTime = gunType.model == null ? 1 : gunType.model.pumpTime;
                 animations.doShoot(pumpDelay, pumpTime);
-                FlansModClient.playerRecoil += gunType.getRecoil(stack, player);
+                //FlansModClient.playerRecoil += gunType.getRecoil(stack, player);
 
+                FlansModClient.fireTicks = 5;
 
-                double yaw = rand.nextGaussian() * FlansModClient.playerRecoil;
-                double pitch = rand.nextGaussian() * FlansModClient.playerRecoil;
-                yaw = yaw / 2.0;
-                pitch = pitch / 2.0;
-                player.rotationYaw += yaw > 180 ? 180 : yaw < -180 ? -180 : yaw;
-                player.rotationPitch += pitch > 90 ? 90 : pitch < -90 ? -90 : pitch;
+                double yaw = rand.nextFloat() * 3 - 1.5;
+                double pitch = (1.0D - 1.0D / (gunType.getRecoil(stack, player) + 1.0D)) * 2.0D;
+                player.rotationYaw += yaw;
+                player.rotationPitch -= pitch;
                 //System.out.println("Yaw:" + yaw + "| Pitch:" + pitch);
 
                 if (left) FlansModClient.shootTimeLeft = gunType.getShootDelay(stack, player);

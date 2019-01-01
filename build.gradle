@@ -52,7 +52,7 @@ tasks.withType(JavaCompile) {
 task serverJar(type: Jar, dependsOn: reobf) {
     classifier = 'server'
     from(zipTree(jar.getArchivePath()))
-    exclude 'com/**/client/', 'assets/**/gui/', 'assets/**/skins/', 'assets/**/teamsMod/', 'assets/**/textures/'
+    exclude 'assets/**/gui/', 'assets/**/skins/', 'assets/**/teamsMod/', 'assets/**/textures/'
 }
 
 task clientJar(type: Jar, dependsOn: reobf) {

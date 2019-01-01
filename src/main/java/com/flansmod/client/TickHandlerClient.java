@@ -56,7 +56,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.flansmod.client.RenderHelper.drawNonStandardTexturedRect;
+import static com.flansmod.client.RenderHelper.drawModalRectWithCustomSizedTexture;
+import static com.flansmod.client.RenderHelper.drawScaledCustomSizeModalRect;
 
 public class TickHandlerClient {
 
@@ -99,13 +100,15 @@ public class TickHandlerClient {
                 boolean success;
                 int width = event.resolution.getScaledWidth();
                 int height = event.resolution.getScaledHeight();
-                theMc.thePlayer.getHeldItem();
-                if (FMLEventHandler.isSneaking(theMc.thePlayer.getUniqueID())) {
-                    success = drawCrossHair(width, height, 0);
+                //theMc.thePlayer.getHeldItem();
+                if (FlansModClient.fireTicks > 0) {
+                    success = drawCrossHair(width, height, 3);
+                } else if (FMLEventHandler.isSneaking(theMc.thePlayer.getUniqueID())) {
+                    success = drawCrossHair(width, height, 0);//0
                 } else if (theMc.thePlayer.isSprinting()) {
-                    success = drawCrossHair(width, height, 2);
+                    success = drawCrossHair(width, height, 2);//2
                 } else {
-                    success = drawCrossHair(width, height, 1);
+                    success = drawCrossHair(width, height, 1);//1
                 }
                 if (success) {
                     event.setCanceled(true);
@@ -347,12 +350,23 @@ public class TickHandlerClient {
         }
     }
 
+    private boolean drawCrossHair(int screenWidth, int screenHeight, int offset, float scale) {
+        boolean bind = bindTexture(theMc.getTextureManager(), crossHair);
+        if (!bind) bind = bindTexture(theMc.getTextureManager(), defaultCrossHair);
+        if (bind) drawScaledCustomSizeModalRect(screenWidth / 2D - 127 * scale, screenHeight / 2D - 127 * scale,
+                256 * offset, 0,
+                256, 256,
+                256 * scale, 256 * scale,
+                1024, 256);
+        return bind;
+    }
+
     private boolean drawCrossHair(int screenWidth, int screenHeight, int offset) {
         if (bindTexture(theMc.getTextureManager(), crossHair)) {
-            drawNonStandardTexturedRect(screenWidth / 2 - 127, screenHeight / 2 - 127, 256 * offset, 0, 256, 256, 1024, 256);
+            drawModalRectWithCustomSizedTexture(screenWidth / 2D - 127, screenHeight / 2D - 127, 256 * offset, 0, 256, 256, 1024, 256);
             return true;
         } else if (bindTexture(theMc.getTextureManager(), defaultCrossHair)) {
-            drawNonStandardTexturedRect(screenWidth / 2 - 127, screenHeight / 2 - 127, 256 * offset, 0, 256, 256, 1024, 256);
+            drawModalRectWithCustomSizedTexture(screenWidth / 2D - 127, screenHeight / 2D - 127, 256 * offset, 0, 256, 256, 1024, 256);
             return true;
         } else return false;
     }
