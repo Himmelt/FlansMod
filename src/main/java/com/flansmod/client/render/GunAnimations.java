@@ -1,4 +1,4 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
 public class GunAnimations {
     public static GunAnimations defaults = new GunAnimations();

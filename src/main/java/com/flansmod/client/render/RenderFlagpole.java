@@ -1,5 +1,6 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
+import com.flansmod.client.model.ModelFlagpole;
 import com.flansmod.common.teams.EntityFlagpole;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;

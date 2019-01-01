@@ -1,7 +1,7 @@
 package com.flansmod.client.gui;
 
 import com.flansmod.client.FlansModResourceHandler;
-import com.flansmod.client.model.RenderMecha;
+import com.flansmod.client.render.RenderMecha;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.driveables.mechas.ContainerMechaInventory;
 import com.flansmod.common.driveables.mechas.EntityMecha;

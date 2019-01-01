@@ -3,7 +3,7 @@ package com.flansmod.client;
 import com.flansmod.api.IControllable;
 import com.flansmod.client.gui.GuiDriveableController;
 import com.flansmod.client.gui.GuiTeamScores;
-import com.flansmod.client.model.GunAnimations;
+import com.flansmod.client.render.GunAnimations;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.PlayerData;
 import com.flansmod.common.PlayerHandler;

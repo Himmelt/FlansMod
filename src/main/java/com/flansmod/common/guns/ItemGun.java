@@ -3,7 +3,7 @@ package com.flansmod.common.guns;
 import com.flansmod.client.FlansModClient;
 import com.flansmod.client.debug.EntityDebugDot;
 import com.flansmod.client.debug.EntityDebugVector;
-import com.flansmod.client.model.GunAnimations;
+import com.flansmod.client.render.GunAnimations;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.PlayerData;
 import com.flansmod.common.PlayerHandler;

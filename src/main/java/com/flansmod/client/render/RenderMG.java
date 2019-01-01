@@ -1,6 +1,7 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
 import com.flansmod.client.FlansModResourceHandler;
+import com.flansmod.client.model.ModelMG;
 import com.flansmod.common.guns.EntityMG;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.entity.Entity;

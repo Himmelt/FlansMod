@@ -1,4 +1,4 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
 import com.flansmod.common.FlansMod;
 import net.minecraft.client.model.ModelBase;

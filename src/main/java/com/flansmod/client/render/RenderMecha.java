@@ -1,7 +1,10 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
 import com.flansmod.client.ClientProxy;
 import com.flansmod.client.FlansModResourceHandler;
+import com.flansmod.client.model.ModelDriveable;
+import com.flansmod.client.model.ModelGun;
+import com.flansmod.client.model.ModelMecha;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.driveables.DriveablePart;
 import com.flansmod.common.driveables.DriveablePosition;

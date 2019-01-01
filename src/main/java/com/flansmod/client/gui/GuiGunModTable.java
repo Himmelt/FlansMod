@@ -1,7 +1,7 @@
 package com.flansmod.client.gui;
 
 import com.flansmod.client.ClientProxy;
-import com.flansmod.client.model.GunAnimations;
+import com.flansmod.client.render.GunAnimations;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.guns.ContainerGunModTable;
 import com.flansmod.common.guns.GunType;

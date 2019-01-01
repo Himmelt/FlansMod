@@ -1,6 +1,7 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
 import com.flansmod.client.FlansModClient;
+import com.flansmod.client.model.ModelFlagpole;
 import com.flansmod.common.teams.EntityFlag;
 import com.flansmod.common.teams.EntityFlagpole;
 import com.flansmod.common.teams.Team;

@@ -1,7 +1,10 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
 import com.flansmod.client.FlansModClient;
 import com.flansmod.client.FlansModResourceHandler;
+import com.flansmod.client.model.EnumAnimationType;
+import com.flansmod.client.model.ModelAttachment;
+import com.flansmod.client.model.ModelGun;
 import com.flansmod.common.PlayerData;
 import com.flansmod.common.PlayerHandler;
 import com.flansmod.common.guns.*;

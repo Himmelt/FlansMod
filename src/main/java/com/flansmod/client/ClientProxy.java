@@ -2,7 +2,7 @@ package com.flansmod.client;
 
 import com.flansmod.client.debug.*;
 import com.flansmod.client.gui.*;
-import com.flansmod.client.model.*;
+import com.flansmod.client.render.*;
 import com.flansmod.common.CommonProxy;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.driveables.*;
@@ -279,7 +279,11 @@ public class ClientProxy extends CommonProxy {
     public <T> T loadModel(String clzName, String shortName, Class<T> typeClass) {
         if (clzName == null || shortName == null) return null;
         try {
-            Object object = Class.forName(modelDir + getModelName(clzName)).getConstructor().newInstance();
+            String clazzName = modelDir + getModelName(clzName);
+            if (DEBUG) System.out.println(clazzName);
+            Class<?> clazz = Class.forName(clazzName);
+            if (DEBUG) System.out.println(clazz);
+            Object object = clazz.getConstructor().newInstance();
             return typeClass.cast(object);
         } catch (Exception e) {
             FlansMod.log(Level.WARN, "Failed to load model shortName: " + shortName + " | clzName: " + clzName);

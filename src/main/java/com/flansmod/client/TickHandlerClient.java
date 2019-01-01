@@ -1,8 +1,8 @@
 package com.flansmod.client;
 
 import com.flansmod.client.gui.GuiTeamScores;
-import com.flansmod.client.model.RenderFlag;
-import com.flansmod.client.model.RenderGun;
+import com.flansmod.client.render.RenderFlag;
+import com.flansmod.client.render.RenderGun;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.PlayerData;
 import com.flansmod.common.PlayerHandler;

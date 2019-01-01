@@ -1,4 +1,4 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import net.minecraft.block.Block;

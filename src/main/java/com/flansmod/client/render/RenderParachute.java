@@ -1,4 +1,4 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
 import com.flansmod.client.FlansModResourceHandler;
 import com.flansmod.common.tools.EntityParachute;

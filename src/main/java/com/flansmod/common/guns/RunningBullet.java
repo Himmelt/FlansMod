@@ -272,7 +272,6 @@ public class RunningBullet implements IEntityAdditionalSpawnData {
         return MathHelper.sqrt_float(f * f + f1 * f1 + f2 * f2);
     }
 
-    @SideOnly(Side.CLIENT)
     public void onUpdate() {
         ++this.ticksExisted;
         ++this.ticksInAir;
@@ -529,7 +528,6 @@ public class RunningBullet implements IEntityAdditionalSpawnData {
             if (this.worldObj.isRemote) {
                 this.extinguish();
             }
-
         }
     }
 
@@ -563,7 +561,6 @@ public class RunningBullet implements IEntityAdditionalSpawnData {
                 particle.renderDistanceWeight = 100.0D;
             }
         }
-
     }
 
     public DamageSource getBulletDamage(boolean headshot) {

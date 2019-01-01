@@ -1,6 +1,8 @@
-package com.flansmod.client.model;
+package com.flansmod.client.render;
 
 import com.flansmod.client.FlansModResourceHandler;
+import com.flansmod.client.model.ModelDriveable;
+import com.flansmod.client.model.ModelPlane;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.driveables.*;
 import net.minecraft.client.Minecraft;

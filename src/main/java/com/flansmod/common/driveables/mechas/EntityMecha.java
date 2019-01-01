@@ -2,7 +2,7 @@ package com.flansmod.common.driveables.mechas;
 
 import com.flansmod.client.debug.EntityDebugVector;
 import com.flansmod.client.gui.GuiDriveableController;
-import com.flansmod.client.model.GunAnimations;
+import com.flansmod.client.render.GunAnimations;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.RotatedAxes;
 import com.flansmod.common.driveables.*;

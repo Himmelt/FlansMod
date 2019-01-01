@@ -8,9 +8,9 @@ import net.minecraft.world.World;
 import java.util.*;
 
 public class RunningBulletManager {
-    private static Map<World, RunningBulletManager> managers = new HashMap();
+    private static Map<World, RunningBulletManager> managers = new HashMap<>();
     public World worldObj;
-    public List<RunningBullet> bullets = new ArrayList();
+    public List<RunningBullet> bullets = new ArrayList<>();
     public int tick = 0;
     boolean remove = false;
     public Timer t;
