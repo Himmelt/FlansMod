@@ -136,7 +136,7 @@ public class ItemGrenade extends ItemShootable implements IFlanItem {
         return grenade;
     }
 
-    public RunningBullet getBullet(World worldObj, EntityLivingBase player, float bulletSpread, float damage, float bulletSpeed, boolean b, int itemDamage, InfoType shotFrom) {
+    public RunningBullet getBullet(World world, EntityLivingBase shooter, float bulletSpread, float damage, float bulletSpeed, boolean b, int itemDamage, InfoType shotType) {
         return null;
     }
 }

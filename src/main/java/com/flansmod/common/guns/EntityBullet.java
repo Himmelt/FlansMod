@@ -34,6 +34,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
+import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -260,82 +261,6 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
                     }
                 }
             }
-            //Get players
-/*            else if (obj instanceof EntityPlayer) {
-                EntityPlayer player = (EntityPlayer) obj;
-                PlayerData data = PlayerHandler.getPlayerData(player);
-                boolean shouldDoNormalHitDetect = false;
-                if (data != null) {
-                    if (player.isDead || data.team == Team.spectators) continue;
-                    if (player == owner && ticksInAir < 20) continue;
-
-                    int snapshotToTry = pingOfShooter / 50;
-                    if (snapshotToTry >= data.snapshots.length)
-                        snapshotToTry = data.snapshots.length - 1;
-
-                    PlayerSnapshot snapshot = data.snapshots[snapshotToTry];
-                    if (snapshot == null)
-                        snapshot = data.snapshots[0];
-
-                    //DEBUG
-                    //snapshot = new PlayerSnapshot(player);
-
-                    //Check one last time for a null snapshot. If this is the case, fall back to normal hit detection
-                    if (snapshot == null)
-                        shouldDoNormalHitDetect = true;
-                    else {
-                        if (boundingBox.intersectsWith(player.boundingBox)) {
-                            hits.add(new PlayerBulletHit(new PlayerHitbox(player), 0.01F));
-                        }
-                        //Raytrace
-                        ArrayList<BulletHit> playerHits = snapshot.raytrace(origin, motion);
-                        hits.addAll(playerHits);
-                    }
-                }
-
-                //If we couldn't get a snapshot, use normal entity hitbox calculations
-                if (data == null || shouldDoNormalHitDetect) {
-                    MovingObjectPosition mop = player.boundingBox.calculateIntercept(
-                            origin.toVec3(), Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ));
-                    if (mop != null) {
-                        Vector3f hitPoint = new Vector3f(mop.hitVec.xCoord - posX, mop.hitVec.yCoord - posY, mop.hitVec.zCoord - posZ);
-                        float hitLambda = 1F;
-                        if (motion.x != 0F)
-                            hitLambda = hitPoint.x / motion.x;
-                        else if (motion.y != 0F)
-                            hitLambda = hitPoint.y / motion.y;
-                        else if (motion.z != 0F)
-                            hitLambda = hitPoint.z / motion.z;
-                        if (hitLambda < 0)
-                            hitLambda = -hitLambda;
-
-                        hits.add(new PlayerBulletHit(new PlayerHitbox(player), hitLambda));
-                    } else if (boundingBox.intersectsWith(player.boundingBox)) {
-                        hits.add(new PlayerBulletHit(new PlayerHitbox(player), 0.01F));
-                    }
-                }
-            } else {
-                Entity entity = (Entity) obj;
-                if (entity != this && entity != owner && !entity.isDead && (entity instanceof EntityLivingBase || entity instanceof EntityAAGun || entity instanceof EntityGrenade)) {
-                    MovingObjectPosition mop = entity.boundingBox.calculateIntercept(origin.toVec3(), Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ));
-                    if (mop != null) {
-                        Vector3f hitPoint = new Vector3f(mop.hitVec.xCoord - posX, mop.hitVec.yCoord - posY, mop.hitVec.zCoord - posZ);
-                        float hitLambda = 1F;
-                        if (motion.x != 0F)
-                            hitLambda = hitPoint.x / motion.x;
-                        else if (motion.y != 0F)
-                            hitLambda = hitPoint.y / motion.y;
-                        else if (motion.z != 0F)
-                            hitLambda = hitPoint.z / motion.z;
-                        if (hitLambda < 0)
-                            hitLambda = -hitLambda;
-
-                        hits.add(new EntityHit(entity, hitLambda));
-                    } else if (boundingBox.intersectsWith(entity.boundingBox)) {
-                        hits.add(new EntityHit(entity, 0.01F));
-                    }
-                }
-            }*/
         }
 
         //Ray trace the bullet by comparing its next position to its current position
@@ -406,14 +331,13 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
                         worldObj.spawnEntityInWorld(new EntityDebugDot(worldObj, new Vector3f(raytraceResult.hitVec.xCoord, raytraceResult.hitVec.yCoord, raytraceResult.hitVec.zCoord), 1000, 0F, 1F, 0F));
 
                     Block block = worldObj.getBlock(xTile, yTile, zTile);
+                    if (block == Blocks.fence || block == Blocks.fence_gate || block == Blocks.nether_brick_fence) continue;
+
                     Material mat = block.getMaterial();
-                    //If the bullet breaks glass, and can do so according to FlansMod, do so.
-                    if (type.breaksGlass && mat == Material.glass) {
-                        if (TeamsManager.canBreakGlass) {
-                            worldObj.setBlockToAir(xTile, yTile, zTile);
-                            FlansMod.proxy.playBlockBreakSound(xTile, yTile, zTile, block);
-                        }
-                    }
+                    if (mat == Material.air || mat == Material.glass || mat == Material.grass || mat == Material.leaves) continue;
+
+                    int oreId = OreDictionary.getOreID(new ItemStack(block));
+                    if (oreId != -1) if (OreDictionary.getOreName(oreId).equals("treeLeaves")) continue;
 
                     //penetratingPower -= block.getBlockHardness(worldObj, zTile, zTile, zTile);
                     if (hit != null) setPosition(hit.hitVec.xCoord, hit.hitVec.yCoord, hit.hitVec.zCoord);
@@ -427,60 +351,6 @@ public class EntityBullet extends EntityShootable implements IEntityAdditionalSp
                 }
             }
         }
-        //Otherwise, do a standard check for uninteresting entities
-		/*
-		else
-		{
-			//Iterate over entities close to the bullet to see if any of them have been hit and hit them
-			List list = worldObj.getEntitiesWithinAABBExcludingEntity(this, boundingBox.addCoord(motionX, motionY, motionZ).expand(type.hitBoxSize, type.hitBoxSize, type.hitBoxSize));
-			for (int l = 0; l < list.size(); l++)
-			{
-				Entity checkEntity = (Entity) list.get(l);
-				//Driveable collisions are handled earlier
-				if(checkEntity instanceof EntityDriveable)
-					continue;
-				
-				if(checkEntity instanceof EntityPlayer)
-					continue;
-				
-				//Stop the bullet hitting stuff that can't be collided with or the person shooting immediately after firing it
-				if((!checkEntity.canBeCollidedWith() || isPartOfOwner(checkEntity)) && ticksInAir < 20)
-				{
-					continue;
-				}
-				
-				
-				//Calculate the hit damage
-				float hitDamage = damage * type.damageVsLiving;
-				//Create a damage source object
-				DamageSource damagesource = owner == null ? DamageSource.generic : getBulletDamage(false);
-	
-				//When the damage is 0 (such as with Nerf guns) the entityHurt Forge hook is not called, so this hacky thing is here
-				if(hitDamage == 0 && checkEntity instanceof EntityPlayerMP && TeamsManager.getInstance().currentRound != null)
-					TeamsManager.getInstance().currentRound.gametype.playerAttacked((EntityPlayerMP)checkEntity, damagesource);
-				
-				//Attack the entity!
-				if(checkEntity.attackEntityFrom(damagesource, hitDamage))
-				{
-					//If the attack was allowed and the entity is alive, we should remove their immortality cooldown so we can shoot them again. Without this, any rapid fire gun become useless
-					if (checkEntity instanceof EntityLivingBase)
-					{
-						((EntityLivingBase) checkEntity).arrowHitTimer++;
-						((EntityLivingBase) checkEntity).hurtResistantTime = ((EntityLivingBase) checkEntity).maxHurtResistantTime / 2;
-					}
-					//Yuck.
-					//PacketDispatcher.sendPacketToAllAround(posX, posY, posZ, 50, dimension, PacketPlaySound.buildSoundPacket(posX, posY, posZ, type.hitSound, true));
-				}
-				//Unless the bullet penetrates, kill it
-				if(type.penetratingPower > 0)
-				{
-					setPosition(checkEntity.posX, checkEntity.posY, checkEntity.posZ);
-					setDead();
-					break;
-				}
-			}
-		}
-		*/
 
         //Movement dampening variables
         float drag = 0.99F;

@@ -701,6 +701,7 @@ public class GunType extends InfoType implements IScope {
         for (AttachmentType attachment : getCurrentAttachments(stack)) {
             stackSpread *= attachment.spreadMultiplier;
         }
+        double percent = 0;
         if (player != null && stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
             NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
             if (display.hasKey("Lore", 9)) {
@@ -715,16 +716,16 @@ public class GunType extends InfoType implements IScope {
                             Matcher matcher = NUMBER_PATTERN.matcher(line);
                             if (line.contains(FlansMod.sneakingMark)) {
                                 if (sneaking && matcher.find()) {
-                                    stackSpread *= 1.0D - Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
+                                    percent = -Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                     break;
                                 }
                             } else if (line.contains(FlansMod.sprintingMark)) {
                                 if (sprinting && matcher.find()) {
-                                    stackSpread *= 1.0D - Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
+                                    percent = -Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                     break;
                                 }
                             } else if (!sprinting && !sneaking && matcher.find()) {
-                                stackSpread *= 1.0D - Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
+                                percent = -Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                 break;
                             }
                         }
@@ -732,7 +733,12 @@ public class GunType extends InfoType implements IScope {
                 }
             }
         }
-        return stackSpread < 0 ? 0 : stackSpread;
+
+        stackSpread = stackSpread < 0 ? 0 : stackSpread > 100 ? 100 : stackSpread;
+        if (percent >= 0) {
+            stackSpread += percent * (100 - stackSpread);
+        } else stackSpread *= 1 + percent;
+        return stackSpread < 0 ? 0 : stackSpread > 100 ? 100 : stackSpread;
     }
 
     /**

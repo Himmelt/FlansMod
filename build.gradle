@@ -6,10 +6,10 @@ buildscript {
             name = 'aliyun'
             url = 'https://maven.aliyun.com/repository/public'
         }
-//        maven {
-//            name = 'lss233'
-//            url = 'https://www.lss233.com/artifactory/minecraft'
-//        }
+        //maven {
+        //   name = 'lss233'
+        //   url = 'https://www.lss233.com/artifactory/minecraft'
+        //}
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
@@ -24,7 +24,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'forge'
 
-version = "1.7.10-4.10.4"
+version = "1.7.10-4.10.5"
 group = "com.flansmod"
 
 sourceCompatibility = targetCompatibility = 1.7
@@ -95,7 +95,7 @@ task('proguard', type: ProGuardTask) {
     printmapping 'build/out.map'
     //keepparameternames
     dontshrink
-    //dontoptimize
+    dontoptimize
     renamesourcefileattribute 'SourceFile'
     keepattributes 'Exceptions,InnerClasses,Signature,Deprecated,'
     //SourceFile; LineNumberTable; EnclosingMethod
