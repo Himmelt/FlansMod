@@ -9,7 +9,6 @@ import com.flansmod.common.PlayerHandler;
 import com.flansmod.common.driveables.EntityDriveable;
 import com.flansmod.common.driveables.EntitySeat;
 import com.flansmod.common.driveables.mechas.EntityMecha;
-import com.flansmod.common.eventhandlers.FMLEventHandler;
 import com.flansmod.common.guns.AttachmentType;
 import com.flansmod.common.guns.EntityBullet;
 import com.flansmod.common.guns.GunType;
@@ -29,7 +28,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.texture.ITextureObject;
@@ -88,29 +86,12 @@ public class TickHandlerClient {
 
     @SubscribeEvent
     public void eventHandler(RenderGameOverlayEvent event) {
-        ItemStack heldItem = theMc.thePlayer.getHeldItem();
-        if (heldItem != null && heldItem.getItem() instanceof ItemGun) {
-            crossHair = FlansModResourceHandler.getCrossHairTexture(((ItemGun) heldItem.getItem()).type);
-        } else crossHair = null;
-        //Remove crosshairs if looking down the sights of a gun
-        if (event.type == ElementType.CROSSHAIRS && crossHair != null) {
-            // if not looking down the sights of a gun
+        if (event.type == ElementType.CROSSHAIRS) {
             if (FlansModClient.currentScope == null) {
-                // 没有开瞄准镜，就渲染自定义准星
-                boolean success;
                 int width = event.resolution.getScaledWidth();
                 int height = event.resolution.getScaledHeight();
-                //theMc.thePlayer.getHeldItem();
-                if (FlansModClient.fireTicks > 0) {
-                    success = drawCrossHair(width, height, 3);
-                } else if (FMLEventHandler.isSneaking(theMc.thePlayer.getUniqueID())) {
-                    success = drawCrossHair(width, height, 0);//0
-                } else if (theMc.thePlayer.isSprinting()) {
-                    success = drawCrossHair(width, height, 2);//2
-                } else {
-                    success = drawCrossHair(width, height, 1);//1
-                }
-                if (success) {
+                if (FlansModClient.gunType != null) {
+                    drawTenCrossHair(width, height, FlansModClient.crossRadius, FlansModClient.gunType);
                     event.setCanceled(true);
                     return;
                 }
@@ -173,12 +154,12 @@ public class TickHandlerClient {
                     for (int n = 0; n < gunType.numAmmoItemsInGun; n++) {
                         ItemStack bulletStack = ((ItemGun) stack.getItem()).getBulletItemStack(stack, n);
                         if (bulletStack != null && bulletStack.getItem() != null && bulletStack.getItemDamage() < bulletStack.getMaxDamage()) {
-                            RenderHelper.enableGUIStandardItemLighting();
+                            net.minecraft.client.renderer.RenderHelper.enableGUIStandardItemLighting();
                             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
                             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240F, 240F);
                             drawSlotInventory(theMc.fontRenderer, bulletStack, i / 2 + 16 + x, j - 65);
                             GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-                            RenderHelper.disableStandardItemLighting();
+                            net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
                             String s = (bulletStack.getMaxDamage() - bulletStack.getItemDamage()) + "/" + bulletStack.getMaxDamage();
                             if (bulletStack.getMaxDamage() == 1)
                                 s = "";
@@ -203,7 +184,7 @@ public class TickHandlerClient {
                                         s = "";
 
                                     //Draw the slot and then move leftwards
-                                    RenderHelper.enableGUIStandardItemLighting();
+                                    net.minecraft.client.renderer.RenderHelper.enableGUIStandardItemLighting();
                                     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                                     GL11.glEnable(GL12.GL_RESCALE_NORMAL);
                                     OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240F, 240F);
@@ -212,7 +193,7 @@ public class TickHandlerClient {
 
                                     //Draw the string
                                     GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-                                    RenderHelper.disableStandardItemLighting();
+                                    net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
                                     theMc.fontRenderer.drawString(s, i / 2 - 16 - x, j - 59, 0x000000);
                                     theMc.fontRenderer.drawString(s, i / 2 - 17 - x, j - 60, 0xffffff);
                                 }
@@ -302,7 +283,7 @@ public class TickHandlerClient {
             }
 
             //Draw icons indicated weapons used
-            RenderHelper.enableGUIStandardItemLighting();
+            net.minecraft.client.renderer.RenderHelper.enableGUIStandardItemLighting();
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240F, 240F);
@@ -310,7 +291,7 @@ public class TickHandlerClient {
                 drawSlotInventory(theMc.fontRenderer, new ItemStack(killMessage.weapon.item), i - theMc.fontRenderer.getStringWidth("     " + killMessage.killedName) - 12, j - 36 - killMessage.line * 16);
             }
             GL11.glDisable(3042 /*GL_BLEND*/);
-            RenderHelper.disableStandardItemLighting();
+            net.minecraft.client.renderer.RenderHelper.disableStandardItemLighting();
 
             //Off-hand weapon graphics
             theMc.renderEngine.bindTexture(offHand);
@@ -348,6 +329,29 @@ public class TickHandlerClient {
                 theMc.fontRenderer.drawString("Break Blocks : " + TeamsManager.driveablesBreakBlocks, 2, 42, 0xffffff);
             }
         }
+    }
+
+    private void drawTenCrossHair(int screenWidth, int screenHeight, float radius, GunType gunType) {
+        float centerX = screenWidth / 2.0F, centerY = screenHeight / 2.0F;
+        float[] xx = new float[8], yy = new float[8];
+        float[] points = new float[16];
+        xx[0] = centerX - radius;
+        xx[1] = xx[0] - gunType.crossLength;
+        xx[2] = centerX + radius;
+        xx[3] = xx[2] + gunType.crossLength;
+        yy[0] = yy[1] = yy[2] = yy[3] = centerY;
+
+        yy[4] = centerY - radius;
+        yy[5] = yy[4] - gunType.crossLength;
+        yy[6] = centerY + radius;
+        yy[7] = yy[6] + gunType.crossLength;
+        xx[4] = xx[5] = xx[6] = xx[7] = centerX;
+        for (int i = 0; i < 8; i++) {
+            points[i * 2] = xx[i];
+            points[i * 2 + 1] = yy[i];
+        }
+
+        RenderHelper.drawLines(points, gunType.crossThick, gunType.crossColor, true);
     }
 
     private boolean drawCrossHair(int screenWidth, int screenHeight, int offset, float scale) {

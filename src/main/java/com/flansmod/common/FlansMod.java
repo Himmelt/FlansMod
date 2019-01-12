@@ -74,7 +74,7 @@ public class FlansMod {
     public static Configuration configFile;
 
     public static final String MODID = "flansmod";
-    public static final String VERSION = "1.7.10-4.10.5";
+    public static final String VERSION = "1.7.10-4.10.6";
     @Instance(MODID)
     public static FlansMod INSTANCE;
     public static int generalConfigInteger = 32;
@@ -294,6 +294,7 @@ public class FlansMod {
     public void registerCommand(FMLServerStartedEvent event) {
         CommandHandler handler = ((CommandHandler) FMLCommonHandler.instance().getSidedDelegate().getServer().getCommandManager());
         handler.registerCommand(new CommandTeams());
+        handler.registerCommand(new FlansCommand());
     }
 
     @SubscribeEvent

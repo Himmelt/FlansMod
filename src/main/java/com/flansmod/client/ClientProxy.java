@@ -18,6 +18,7 @@ import com.flansmod.common.network.PacketCraftDriveable;
 import com.flansmod.common.network.PacketRepairDriveable;
 import com.flansmod.common.teams.*;
 import com.flansmod.common.tools.EntityParachute;
+import com.flansmod.common.utils.RGBA;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
@@ -398,17 +399,33 @@ public class ClientProxy extends CommonProxy {
         if (configFile.hasChanged()) configFile.save();
     }
 
+    public void sendDataToAll() {
+    }
+
     @SubscribeEvent
     public void onReceivePacket(FMLNetworkEvent.ClientCustomPacketEvent event) {
         String content = event.packet.payload().toString(StandardCharsets.UTF_8);
         if (event.packet.channel().equals("flansmod")) {
             String[] ss = content.split("\\|");
-            if (ss.length == 5) {
+            if (ss.length >= 14) {
                 FlansMod.recoilMark = ss[0];
                 FlansMod.accuracyMark = ss[1];
                 FlansMod.shootDelayMark = ss[2];
                 FlansMod.sneakingMark = ss[3];
                 FlansMod.sprintingMark = ss[4];
+
+                GunType.defCrossType = ss[5];
+                try {
+                    GunType.defCrossLength = Float.parseFloat(ss[6]);
+                    GunType.defCrossSneakRadius = Float.parseFloat(ss[7]);
+                    GunType.defCrossNormalRadius = Float.parseFloat(ss[8]);
+                    GunType.defCrossSprintingRadius = Float.parseFloat(ss[9]);
+                    GunType.defCrossFireRadius = Float.parseFloat(ss[10]);
+                    GunType.defCrossThick = Float.parseFloat(ss[11]);
+                    GunType.defCrossSpeed = Float.parseFloat(ss[12]);
+                    GunType.defCrossColor = RGBA.parseColor(ss[13]);
+                } catch (Throwable ignored) {
+                }
             }
         }
     }

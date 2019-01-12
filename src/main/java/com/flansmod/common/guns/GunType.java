@@ -6,6 +6,7 @@ import com.flansmod.common.FlansMod;
 import com.flansmod.common.eventhandlers.FMLEventHandler;
 import com.flansmod.common.types.InfoType;
 import com.flansmod.common.types.TypeFile;
+import com.flansmod.common.utils.RGBA;
 import com.flansmod.common.vector.Vector3f;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -286,11 +287,40 @@ public class GunType extends InfoType implements IScope {
      */
     public float knockbackModifier = 0F;
 
+    public String crossType;
+    public float crossLength;
+    public float crossSneakRadius;
+    public float crossNormalRadius;
+    public float crossSprintingRadius;
+    public float crossFireRadius;
+    public float crossThick;
+    public float crossSpeed;
+    public RGBA crossColor;
+
+    public static String defCrossType = "default";
+    public static float defCrossLength = 10F;
+    public static float defCrossSneakRadius = 5F;
+    public static float defCrossNormalRadius = 8F;
+    public static float defCrossSprintingRadius = 11F;
+    public static float defCrossFireRadius = 14F;
+    public static float defCrossThick = 1F;
+    public static float defCrossSpeed = 0.5F;
+    public static RGBA defCrossColor = RGBA.WHITE;
+
     private static final Pattern COLOR_PATTERN = Pattern.compile("(?i)\\u00A7[0-9A-FK-OR]");
     private static final Pattern NUMBER_PATTERN = Pattern.compile("[+-]?\\d+(\\.\\d+)?%");
 
     public GunType(TypeFile file) {
         super(file);
+        crossType = defCrossType;
+        crossLength = defCrossLength;
+        crossSneakRadius = defCrossSneakRadius;
+        crossNormalRadius = defCrossNormalRadius;
+        crossSprintingRadius = defCrossSprintingRadius;
+        crossFireRadius = defCrossFireRadius;
+        crossThick = defCrossThick;
+        crossSpeed = defCrossSpeed;
+        crossColor = defCrossColor;
     }
 
     @Override
@@ -486,12 +516,31 @@ public class GunType extends InfoType implements IScope {
                 shieldOrigin = new Vector3f(Float.parseFloat(split[2]) / 16F, Float.parseFloat(split[3]) / 16F, Float.parseFloat(split[4]) / 16F);
                 shieldDimensions = new Vector3f(Float.parseFloat(split[5]) / 16F, Float.parseFloat(split[6]) / 16F, Float.parseFloat(split[7]) / 16F);
             }
+            // crossHair Settings
+            else if (split[0].toLowerCase().equals("crossType")) {
+                crossType = split[1].toLowerCase();
+                if (crossType.isEmpty()) crossType = defCrossType;
+            } else if (split[0].toLowerCase().equals("crossLength")) {
+                crossLength = Float.parseFloat(split[1].toLowerCase());
+            } else if (split[0].toLowerCase().equals("crossSneakRadius")) {
+                crossSneakRadius = Float.parseFloat(split[1].toLowerCase());
+            } else if (split[0].toLowerCase().equals("crossNormalRadius")) {
+                crossNormalRadius = Float.parseFloat(split[1].toLowerCase());
+            } else if (split[0].toLowerCase().equals("crossSprintingRadius")) {
+                crossSprintingRadius = Float.parseFloat(split[1].toLowerCase());
+            } else if (split[0].toLowerCase().equals("crossFireRadius")) {
+                crossFireRadius = Float.parseFloat(split[1].toLowerCase());
+            } else if (split[0].toLowerCase().equals("crossThick")) {
+                crossThick = Float.parseFloat(split[1].toLowerCase());
+            } else if (split[0].toLowerCase().equals("crossSpeed")) {
+                crossSpeed = Float.parseFloat(split[1].toLowerCase());
+            } else if (split[0].toLowerCase().equals("crossColor")) {
+                crossColor = RGBA.parseColor(split[1].toLowerCase());
+            }
         } catch (Exception e) {
             System.out.println("Reading gun file failed.");
             e.printStackTrace();
         }
-
-
     }
 
     /**

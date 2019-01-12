@@ -4,6 +4,8 @@ import com.flansmod.common.CommonProxy;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.driveables.EntityDriveable;
 import com.flansmod.common.eventhandlers.FMLEventHandler;
+import com.flansmod.common.guns.GunType;
+import com.flansmod.common.utils.RGBA;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -70,6 +72,16 @@ public class ServerProxy extends CommonProxy {
         FlansMod.sneakingMark = configFile.getString("sneakingMark", Configuration.CATEGORY_GENERAL, FlansMod.sneakingMark, "Lore Sneaking Keyword.");
         FlansMod.sprintingMark = configFile.getString("sprintingMark", Configuration.CATEGORY_GENERAL, FlansMod.sprintingMark, "Lore Sprinting Keyword.");
 
+        GunType.defCrossType = configFile.getString("defCrossType", "cross-hair", "default", "defCrossType");
+        GunType.defCrossLength = configFile.getFloat("defCrossLength", "cross-hair", 10F, 0F, 100F, "defCrossLength 0-100");
+        GunType.defCrossSneakRadius = configFile.getFloat("defCrossSneakRadius", "cross-hair", 5F, 0F, 100F, "defCrossSneakRadius 0-100");
+        GunType.defCrossNormalRadius = configFile.getFloat("defCrossNormalRadius", "cross-hair", 8F, 0F, 100F, "defCrossNormalRadius 0-100");
+        GunType.defCrossSprintingRadius = configFile.getFloat("defCrossSprintingRadius", "cross-hair", 11F, 0F, 100F, "defCrossSprintingRadius 0-100");
+        GunType.defCrossFireRadius = configFile.getFloat("defCrossFireRadius", "cross-hair", 14F, 0F, 100F, "defCrossFireRadius 0-100");
+        GunType.defCrossThick = configFile.getFloat("defCrossThick", "cross-hair", 1F, 0F, 100F, "defCrossThick 0-100");
+        GunType.defCrossSpeed = configFile.getFloat("defCrossSpeed", "cross-hair", 0.5F, 0F, 100F, "defCrossSpeed 0-100");
+        GunType.defCrossColor = RGBA.parseColor(configFile.getString("defCrossColor", "cross-hair", "rgba(255,255,255,255)", "defCrossColor rgba(red,green,blue,opacity)"));
+
         if (configFile.hasChanged()) configFile.save();
     }
 
@@ -77,13 +89,31 @@ public class ServerProxy extends CommonProxy {
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.player instanceof EntityPlayerMP) {
             ByteBuf buf = Unpooled.buffer();
-            String content = FlansMod.recoilMark + "|"
-                    + FlansMod.accuracyMark + "|"
-                    + FlansMod.shootDelayMark + "|"
-                    + FlansMod.sneakingMark + "|"
-                    + FlansMod.sprintingMark;
-            buf.writeBytes(content.getBytes(StandardCharsets.UTF_8));
+            buf.writeBytes(getData().getBytes(StandardCharsets.UTF_8));
             flanChannel.sendTo(new FMLProxyPacket(new PacketBuffer(buf), "flansmod"), (EntityPlayerMP) event.player);
         }
+    }
+
+    public void sendDataToAll() {
+        ByteBuf buf = Unpooled.buffer();
+        buf.writeBytes(getData().getBytes(StandardCharsets.UTF_8));
+        flanChannel.sendToAll(new FMLProxyPacket(new PacketBuffer(buf), "flansmod"));
+    }
+
+    private String getData() {
+        return FlansMod.recoilMark + "|"         // 0
+                + FlansMod.accuracyMark + "|"              // 1
+                + FlansMod.shootDelayMark + "|"            // 2
+                + FlansMod.sneakingMark + "|"              // 3
+                + FlansMod.sprintingMark + "|"             // 4
+                + GunType.defCrossType + "|"               // 5
+                + GunType.defCrossLength + "|"             // 6
+                + GunType.defCrossSneakRadius + "|"        // 7
+                + GunType.defCrossNormalRadius + "|"       // 8
+                + GunType.defCrossSprintingRadius + "|"    // 9
+                + GunType.defCrossFireRadius + "|"         // 10
+                + GunType.defCrossThick + "|"              // 11
+                + GunType.defCrossSpeed + "|"              // 12
+                + GunType.defCrossColor;                   // 13
     }
 }

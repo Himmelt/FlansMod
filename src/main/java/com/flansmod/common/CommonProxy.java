@@ -336,4 +336,6 @@ public abstract class CommonProxy {
     }
 
     public abstract void syncConfig();
+
+    public abstract void sendDataToAll();
 }

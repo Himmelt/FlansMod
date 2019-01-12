@@ -7,6 +7,7 @@ import com.flansmod.client.render.GunAnimations;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.PlayerData;
 import com.flansmod.common.PlayerHandler;
+import com.flansmod.common.eventhandlers.FMLEventHandler;
 import com.flansmod.common.guns.GunType;
 import com.flansmod.common.guns.IScope;
 import com.flansmod.common.guns.ItemGun;
@@ -65,6 +66,9 @@ public class FlansModClient extends FlansMod {
     public static int shootTimeLeft, shootTimeRight;
 
     public static int fireTicks = 0;
+    public static GunType gunType = null;
+    public static float crossRadius = 5F;
+    public static float crossTarget = 5F;
 
     //Recoil variables
     /**
@@ -247,11 +251,13 @@ public class FlansModClient extends FlansMod {
     }
 
     public static void tick() {
-        if (minecraft.thePlayer == null || minecraft.theWorld == null)
+        EntityPlayer player = minecraft.thePlayer;
+
+        if (player == null || minecraft.theWorld == null)
             return;
 
-        if (minecraft.thePlayer.ridingEntity instanceof IControllable && minecraft.currentScreen == null)
-            minecraft.displayGuiScreen(new GuiDriveableController((IControllable) minecraft.thePlayer.ridingEntity));
+        if (player.ridingEntity instanceof IControllable && minecraft.currentScreen == null)
+            minecraft.displayGuiScreen(new GuiDriveableController((IControllable) player.ridingEntity));
 
         if (teamInfo != null && PacketTeamInfo.timeLeft > 0)
             PacketTeamInfo.timeLeft--;
@@ -261,6 +267,19 @@ public class FlansModClient extends FlansMod {
             teamsScoreGUILock--;
             if (minecraft.currentScreen == null)
                 minecraft.displayGuiScreen(new GuiTeamScores());
+        }
+
+        ItemStack stack = player.getHeldItem();
+        if (stack != null && stack.getItem() instanceof ItemGun) {
+            gunType = ((ItemGun) stack.getItem()).type;
+            if (FMLEventHandler.isSneaking(player.getUniqueID())) {
+                FlansModClient.crossTarget = gunType.crossSneakRadius;
+            } else if (player.isSprinting()) {
+                FlansModClient.crossTarget = gunType.crossSprintingRadius;
+            } else FlansModClient.crossTarget = gunType.crossNormalRadius;
+            if (crossRadius - crossTarget > gunType.crossSpeed) crossRadius -= gunType.crossSpeed;
+            else if (crossRadius - crossTarget < -gunType.crossSpeed) crossRadius += gunType.crossSpeed;
+            else crossRadius = crossTarget;
         }
 
         if (fireTicks > 0) fireTicks--;
@@ -273,10 +292,10 @@ public class FlansModClient extends FlansMod {
         if (scopeTime > 0)
             scopeTime--;
         //if (playerRecoil > 0) playerRecoil *= 0.8F;
-        //minecraft.thePlayer.rotationPitch -= playerRecoil;
+        //player.rotationPitch -= playerRecoil;
         //antiRecoil += playerRecoil;
 
-        //minecraft.thePlayer.rotationPitch += antiRecoil * 0.2F;
+        //player.rotationPitch += antiRecoil * 0.2F;
         //antiRecoil *= 0.8F;
 
         //Update gun animations for the gun in hand
@@ -288,20 +307,20 @@ public class FlansModClient extends FlansMod {
         }
 
         for (Object obj : minecraft.theWorld.playerEntities) {
-            EntityPlayer player = (EntityPlayer) obj;
-            ItemStack currentItem = player.getCurrentEquippedItem();
+            EntityPlayer playerObj = (EntityPlayer) obj;
+            ItemStack currentItem = playerObj.getCurrentEquippedItem();
             if (currentItem != null && currentItem.getItem() instanceof ItemGun) {
-                if (player == minecraft.thePlayer && minecraft.gameSettings.thirdPersonView == 0)
-                    player.clearItemInUse();
+                if (playerObj == player && minecraft.gameSettings.thirdPersonView == 0)
+                    playerObj.clearItemInUse();
                 else {
-                    player.setItemInUse(currentItem, 100);
+                    playerObj.setItemInUse(currentItem, 100);
                 }
             }
         }
 
         //If the currently held item is not a gun or is the wrong gun, unscope
         Item itemInHand = null;
-        ItemStack itemstackInHand = minecraft.thePlayer.inventory.getCurrentItem();
+        ItemStack itemstackInHand = player.inventory.getCurrentItem();
         if (itemstackInHand != null)
             itemInHand = itemstackInHand.getItem();
         if (currentScope != null && (itemInHand == null || !(itemInHand instanceof ItemGun && ((ItemGun) itemInHand).type.getCurrentScope(itemstackInHand) == currentScope))) {
@@ -319,17 +338,17 @@ public class FlansModClient extends FlansMod {
             zoomProgress = 1F - (1F - zoomProgress) * 0.66F;
         }
 
-        if (minecraft.thePlayer.ridingEntity instanceof IControllable) {
+        if (player.ridingEntity instanceof IControllable) {
             inPlane = true;
             try {
-                ObfuscationReflectionHelper.setPrivateValue(EntityRenderer.class, minecraft.entityRenderer, ((IControllable) minecraft.thePlayer.ridingEntity).getPlayerRoll(), "camRoll", "R", "field_78495_O");
+                ObfuscationReflectionHelper.setPrivateValue(EntityRenderer.class, minecraft.entityRenderer, ((IControllable) player.ridingEntity).getPlayerRoll(), "camRoll", "R", "field_78495_O");
             } catch (Exception e) {
                 log("I forgot to update obfuscated reflection D:");
                 throw new RuntimeException(e);
             }
-            if (minecraft.thePlayer.ridingEntity instanceof IControllable) {
+            if (player.ridingEntity instanceof IControllable) {
                 try {
-                    ObfuscationReflectionHelper.setPrivateValue(EntityRenderer.class, minecraft.entityRenderer, ((IControllable) minecraft.thePlayer.ridingEntity).getCameraDistance(), "thirdPersonDistance", "E", "field_78490_B");
+                    ObfuscationReflectionHelper.setPrivateValue(EntityRenderer.class, minecraft.entityRenderer, ((IControllable) player.ridingEntity).getCameraDistance(), "thirdPersonDistance", "E", "field_78490_B");
                 } catch (Exception e) {
                     log("I forgot to update obfuscated reflection D:");
                     throw new RuntimeException(e);

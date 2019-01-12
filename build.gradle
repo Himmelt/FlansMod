@@ -24,7 +24,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'forge'
 
-version = "1.7.10-4.10.5"
+version = "1.7.10-4.10.6"
 group = "com.flansmod"
 
 sourceCompatibility = targetCompatibility = 1.7
@@ -126,6 +126,9 @@ task('proguard', type: ProGuardTask) {
     }'
 
     keep 'class cofh.api.** { \
+        *; \
+    }'
+    keep 'class com.flansmod.api.** { \
         *; \
     }'
     keep 'class com.flansmod.client.model.** { \
