@@ -288,7 +288,8 @@ public class RunningBullet implements IEntityAdditionalSpawnData {
         if (isDead) return;
 
         ArrayList<BulletHit> hits = new ArrayList<>();
-        Vector3f origin = new Vector3f(posX, posY, posZ);
+        Vector3f lastPos = new Vector3f(posX, posY, posZ);
+        Vector3f nextPos = new Vector3f(posX + motionX, posY + motionY, posZ + motionZ);
         Vector3f motion = new Vector3f(motionX, motionY, motionZ);
         float speed = motion.length();
 
@@ -305,41 +306,28 @@ public class RunningBullet implements IEntityAdditionalSpawnData {
                 EntityDriveable driveable = (EntityDriveable) entity;
                 if (driveable.isDead() || driveable.isPartOfThis(owner)) continue;
                 if (getDistanceToEntity(driveable) <= driveable.getDriveableType().bulletDetectionRadius + speed) {
-                    ArrayList<BulletHit> driveableHits = driveable.attackFromBullet(origin, motion);
+                    ArrayList<BulletHit> driveableHits = driveable.attackFromBullet(lastPos, motion);
                     hits.addAll(driveableHits);
                 }
             } else if ((entity instanceof EntityLivingBase || entity instanceof EntityAAGun || entity instanceof EntityGrenade) && entity != owner && !entity.isDead) {
+                double cX = (entity.boundingBox.minX + entity.boundingBox.maxX) / 2;
+                double cY = (entity.boundingBox.minY + entity.boundingBox.maxY) / 2;
+                double cZ = (entity.boundingBox.minZ + entity.boundingBox.maxZ) / 2;
+                double distance = lastPos.toVec3().distanceTo(Vec3.createVectorHelper(cX, cY, cZ));
                 for (int j = 0; j <= time; j++) {
                     if (boundingBox.getOffsetBoundingBox(j * unitX, j * unitY, j * unitZ).intersectsWith(entity.boundingBox)) {
-                        double distance = Vec3.createVectorHelper(posX + j * unitX, posY + j * unitY, posZ + j * unitZ)
-                                .distanceTo(Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ));
-                        hits.add(new EntityHit(entity, (float) (distance / (distance + 1.0))));
+                        hits.add(new EntityHit(entity, (float) distance / speed));
                         break;
                     }
                 }
             }
         }
 
-        Vec3 posVec = Vec3.createVectorHelper(this.posX, this.posY, this.posZ);
-        Vec3 nextPosVec = Vec3.createVectorHelper(this.posX + this.motionX, this.posY + this.motionY, this.posZ + this.motionZ);
-        MovingObjectPosition hit = this.worldObj.func_147447_a(posVec, nextPosVec, false, true, true);
-        posVec = Vec3.createVectorHelper(this.posX, this.posY, this.posZ);
+        // rayTraceBlocks
+        MovingObjectPosition hit = worldObj.func_147447_a(lastPos.toVec3(), nextPos.toVec3(), false, true, true);
         if (hit != null) {
-            Vec3 hitVec = posVec.subtract(hit.hitVec);
-            float lambda = 1.0F;
-            if (motionX != 0.0D) {
-                lambda = (float) (hitVec.xCoord / motionX);
-            } else if (this.motionY != 0.0D) {
-                lambda = (float) (hitVec.yCoord / motionY);
-            } else if (this.motionZ != 0.0D) {
-                lambda = (float) (hitVec.zCoord / motionZ);
-            }
-
-            if (lambda < 0.0F) {
-                lambda = -lambda;
-            }
-
-            hits.add(new BlockHit(hit, lambda));
+            double distance = lastPos.toVec3().distanceTo(hit.hitVec);
+            hits.add(new BlockHit(hit, (float) (distance / speed)));
         }
 
         if (!hits.isEmpty()) {

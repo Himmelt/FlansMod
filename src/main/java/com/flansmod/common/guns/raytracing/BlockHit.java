@@ -5,9 +5,8 @@ import net.minecraft.util.MovingObjectPosition;
 public class BlockHit extends BulletHit {
     public MovingObjectPosition raytraceResult;
 
-    public BlockHit(MovingObjectPosition mop, float f) {
-        super(f);
+    public BlockHit(MovingObjectPosition mop, float intersectTime) {
+        super(intersectTime);
         raytraceResult = mop;
     }
-
 }
