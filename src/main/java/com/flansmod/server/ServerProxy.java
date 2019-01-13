@@ -69,6 +69,7 @@ public class ServerProxy extends CommonProxy {
         FlansMod.recoilMark = configFile.getString("recoilMark", Configuration.CATEGORY_GENERAL, FlansMod.recoilMark, "Lore Recoil Keyword.");
         FlansMod.accuracyMark = configFile.getString("accuracyMark", Configuration.CATEGORY_GENERAL, FlansMod.accuracyMark, "Lore Accuracy Keyword.");
         FlansMod.shootDelayMark = configFile.getString("shootDelayMark", Configuration.CATEGORY_GENERAL, FlansMod.shootDelayMark, "Lore ShootDelay Keyword.");
+        FlansMod.reloadTimeMark = configFile.getString("reloadTimeMark", Configuration.CATEGORY_GENERAL, FlansMod.reloadTimeMark, "Lore ReloadTime Keyword.");
         FlansMod.sneakingMark = configFile.getString("sneakingMark", Configuration.CATEGORY_GENERAL, FlansMod.sneakingMark, "Lore Sneaking Keyword.");
         FlansMod.sprintingMark = configFile.getString("sprintingMark", Configuration.CATEGORY_GENERAL, FlansMod.sprintingMark, "Lore Sprinting Keyword.");
 
@@ -106,19 +107,20 @@ public class ServerProxy extends CommonProxy {
     }
 
     private String getData() {
-        return FlansMod.recoilMark + "|"         // 0
-                + FlansMod.accuracyMark + "|"              // 1
-                + FlansMod.shootDelayMark + "|"            // 2
-                + FlansMod.sneakingMark + "|"              // 3
-                + FlansMod.sprintingMark + "|"             // 4
-                + GunType.defCrossType + "|"               // 5
-                + GunType.defCrossLength + "|"             // 6
-                + GunType.defCrossSneakRadius + "|"        // 7
-                + GunType.defCrossNormalRadius + "|"       // 8
-                + GunType.defCrossSprintingRadius + "|"    // 9
-                + GunType.defCrossFireRadius + "|"         // 10
-                + GunType.defCrossThick + "|"              // 11
-                + GunType.defCrossSpeed + "|"              // 12
-                + GunType.defCrossColor;                   // 13
+        return FlansMod.recoilMark + "|"
+                + FlansMod.accuracyMark + "|"
+                + FlansMod.shootDelayMark + "|"
+                + FlansMod.reloadTimeMark + "|"
+                + FlansMod.sneakingMark + "|"
+                + FlansMod.sprintingMark + "|"
+                + GunType.defCrossType + "|"
+                + GunType.defCrossLength + "|"
+                + GunType.defCrossSneakRadius + "|"
+                + GunType.defCrossNormalRadius + "|"
+                + GunType.defCrossSprintingRadius + "|"
+                + GunType.defCrossFireRadius + "|"
+                + GunType.defCrossThick + "|"
+                + GunType.defCrossSpeed + "|"
+                + GunType.defCrossColor;
     }
 }

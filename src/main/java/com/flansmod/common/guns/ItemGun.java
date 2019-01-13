@@ -681,7 +681,7 @@ public class ItemGun extends Item implements IFlanItem {
                 if (reload(gunStack, gunType, world, entityplayer, false, left)) {
                     //Set player shoot delay to be the reload delay
                     //Set both gun delays to avoid reloading two guns at once
-                    data.shootTimeRight = data.shootTimeLeft = (int) gunType.getReloadTime(gunStack);
+                    data.shootTimeRight = data.shootTimeLeft = (int) gunType.getReloadTime(gunStack, entityplayer);
 
                     if (left) {
                         data.reloadingLeft = true;

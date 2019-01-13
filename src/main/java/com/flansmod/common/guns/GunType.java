@@ -764,7 +764,7 @@ public class GunType extends InfoType implements IScope {
                                     percent = -Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                     break;
                                 }
-                            } else if (!sprinting && !sneaking && matcher.find()) {
+                            } else if (matcher.find()) {
                                 percent = -Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
                                 break;
                             }
@@ -803,16 +803,16 @@ public class GunType extends InfoType implements IScope {
                             Matcher matcher = NUMBER_PATTERN.matcher(line);
                             if (line.contains(FlansMod.sneakingMark)) {
                                 if (sneaking && matcher.find()) {
-                                    stackRecoil *= 1.0D + Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
+                                    stackRecoil *= 1.0F + Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
                                     break;
                                 }
                             } else if (line.contains(FlansMod.sprintingMark)) {
                                 if (sprinting && matcher.find()) {
-                                    stackRecoil *= 1.0D + Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
+                                    stackRecoil *= 1.0F + Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
                                     break;
                                 }
-                            } else if (!sprinting && !sneaking && matcher.find()) {
-                                stackRecoil *= 1.0D + Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
+                            } else if (matcher.find()) {
+                                stackRecoil *= 1.0F + Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
                                 break;
                             }
                         }
@@ -858,7 +858,7 @@ public class GunType extends InfoType implements IScope {
                                     stackShootDelay *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
                                     break;
                                 }
-                            } else if (!sprinting && !sneaking && matcher.find()) {
+                            } else if (matcher.find()) {
                                 stackShootDelay *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
                                 break;
                             }
@@ -873,12 +873,43 @@ public class GunType extends InfoType implements IScope {
     /**
      * Get the reload time of a specific gun, taking into account attachments
      */
-    public float getReloadTime(ItemStack stack) {
+    public float getReloadTime(ItemStack stack, EntityPlayer player) {
         float stackReloadTime = reloadTime;
         for (AttachmentType attachment : getCurrentAttachments(stack)) {
             stackReloadTime *= attachment.reloadTimeMultiplier;
         }
-        return stackReloadTime;
+        if (player != null && stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
+            NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
+            if (display.hasKey("Lore", 9)) {
+                NBTTagList list = display.getTagList("Lore", 8);
+                boolean sneaking = FMLEventHandler.isSneaking(player.getUniqueID());
+                boolean sprinting = player.isSprinting();
+                for (int i = 0; i < list.tagCount(); i++) {
+                    String line = list.getStringTagAt(i);
+                    if (line != null && !line.isEmpty()) {
+                        line = COLOR_PATTERN.matcher(line).replaceAll("");
+                        if (line.contains(FlansMod.reloadTimeMark)) {
+                            Matcher matcher = NUMBER_PATTERN.matcher(line);
+                            if (line.contains(FlansMod.sneakingMark)) {
+                                if (sneaking && matcher.find()) {
+                                    stackReloadTime *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (line.contains(FlansMod.sprintingMark)) {
+                                if (sprinting && matcher.find()) {
+                                    stackReloadTime *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (matcher.find()) {
+                                stackReloadTime *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return stackReloadTime < 0 ? 0 : stackReloadTime;
     }
 
     /**

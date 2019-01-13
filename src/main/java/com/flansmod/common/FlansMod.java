@@ -69,6 +69,7 @@ public class FlansMod {
     public static String recoilMark = "Recoil";
     public static String accuracyMark = "Accuracy";
     public static String shootDelayMark = "ShootDelay";
+    public static String reloadTimeMark = "ReloadTime";
     public static String sneakingMark = "Sneaking";
     public static String sprintingMark = "Sprinting";
     public static Configuration configFile;

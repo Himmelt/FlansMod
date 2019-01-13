@@ -411,23 +411,24 @@ public class ClientProxy extends CommonProxy {
         String content = event.packet.payload().toString(StandardCharsets.UTF_8);
         if (event.packet.channel().equals("flansmod")) {
             String[] ss = content.split("\\|");
-            if (ss.length >= 14) {
-                FlansMod.recoilMark = ss[0];
-                FlansMod.accuracyMark = ss[1];
-                FlansMod.shootDelayMark = ss[2];
-                FlansMod.sneakingMark = ss[3];
-                FlansMod.sprintingMark = ss[4];
-
-                GunType.defCrossType = ss[5];
+            if (ss.length >= 15) {
+                int i = 0;
+                FlansMod.recoilMark = ss[i++];
+                FlansMod.accuracyMark = ss[i++];
+                FlansMod.shootDelayMark = ss[i++];
+                FlansMod.reloadTimeMark = ss[i++];
+                FlansMod.sneakingMark = ss[i++];
+                FlansMod.sprintingMark = ss[i++];
                 try {
-                    GunType.defCrossLength = Float.parseFloat(ss[6]);
-                    GunType.defCrossSneakRadius = Float.parseFloat(ss[7]);
-                    GunType.defCrossNormalRadius = Float.parseFloat(ss[8]);
-                    GunType.defCrossSprintingRadius = Float.parseFloat(ss[9]);
-                    GunType.defCrossFireRadius = Float.parseFloat(ss[10]);
-                    GunType.defCrossThick = Float.parseFloat(ss[11]);
-                    GunType.defCrossSpeed = Float.parseFloat(ss[12]);
-                    GunType.defCrossColor = RGBA.parseColor(ss[13], RGBA.WHITE);
+                    GunType.defCrossType = ss[i++];
+                    GunType.defCrossLength = Float.parseFloat(ss[i++]);
+                    GunType.defCrossSneakRadius = Float.parseFloat(ss[i++]);
+                    GunType.defCrossNormalRadius = Float.parseFloat(ss[i++]);
+                    GunType.defCrossSprintingRadius = Float.parseFloat(ss[i++]);
+                    GunType.defCrossFireRadius = Float.parseFloat(ss[i++]);
+                    GunType.defCrossThick = Float.parseFloat(ss[i++]);
+                    GunType.defCrossSpeed = Float.parseFloat(ss[i++]);
+                    GunType.defCrossColor = RGBA.parseColor(ss[i++], RGBA.WHITE);
                 } catch (Throwable e) {
                     e.printStackTrace();
                 }
