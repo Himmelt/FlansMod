@@ -354,8 +354,6 @@ public class FlansMod {
                                 typeFile.lines.add(line);
                             }
                             reader.close();
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

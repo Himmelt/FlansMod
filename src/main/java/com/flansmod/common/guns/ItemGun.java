@@ -329,7 +329,7 @@ public class ItemGun extends Item implements IFlanItem {
                 //FlansModClient.playerRecoil += gunType.getRecoil(stack, player);
 
                 FlansModClient.fireTicks = 5;
-                FlansModClient.crossRadius = gunType.crossFireRadius;
+                FlansModClient.crossRadius = gunType.getCrossFireRadius();
 
                 double yaw = rand.nextFloat() * 3 - 1.5;
                 double pitch = (1.0D - 1.0D / (gunType.getRecoil(stack, player) + 1.0D)) * 2.0D;

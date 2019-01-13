@@ -80,9 +80,14 @@ public class ServerProxy extends CommonProxy {
         GunType.defCrossFireRadius = configFile.getFloat("defCrossFireRadius", "cross-hair", 14F, 0F, 100F, "defCrossFireRadius 0-100");
         GunType.defCrossThick = configFile.getFloat("defCrossThick", "cross-hair", 1F, 0F, 100F, "defCrossThick 0-100");
         GunType.defCrossSpeed = configFile.getFloat("defCrossSpeed", "cross-hair", 0.5F, 0F, 100F, "defCrossSpeed 0-100");
-        GunType.defCrossColor = RGBA.parseColor(configFile.getString("defCrossColor", "cross-hair", "rgba(255,255,255,255)", "defCrossColor rgba(red,green,blue,opacity)"));
+        GunType.defCrossColor = RGBA.parseColor(configFile.getString("defCrossColor", "cross-hair", "rgba(255,255,255,255)", "defCrossColor rgba(red,green,blue,opacity)"), null);
 
         if (configFile.hasChanged()) configFile.save();
+    }
+
+    public void reload() {
+        configFile.load();
+        syncConfig();
     }
 
     @SubscribeEvent
@@ -94,7 +99,7 @@ public class ServerProxy extends CommonProxy {
         }
     }
 
-    public void sendDataToAll() {
+    public void sendConfigToAll() {
         ByteBuf buf = Unpooled.buffer();
         buf.writeBytes(getData().getBytes(StandardCharsets.UTF_8));
         flanChannel.sendToAll(new FMLProxyPacket(new PacketBuffer(buf), "flansmod"));

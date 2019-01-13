@@ -387,6 +387,7 @@ public class ClientProxy extends CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
         FMLCommonHandler.instance().bus().register(new FMLEventHandler());
+        FMLCommonHandler.instance().bus().register(new ClientFMLHandler());
         flanChannel.register(this);
     }
 
@@ -399,7 +400,10 @@ public class ClientProxy extends CommonProxy {
         if (configFile.hasChanged()) configFile.save();
     }
 
-    public void sendDataToAll() {
+    public void reload() {
+    }
+
+    public void sendConfigToAll() {
     }
 
     @SubscribeEvent
@@ -423,8 +427,9 @@ public class ClientProxy extends CommonProxy {
                     GunType.defCrossFireRadius = Float.parseFloat(ss[10]);
                     GunType.defCrossThick = Float.parseFloat(ss[11]);
                     GunType.defCrossSpeed = Float.parseFloat(ss[12]);
-                    GunType.defCrossColor = RGBA.parseColor(ss[13]);
-                } catch (Throwable ignored) {
+                    GunType.defCrossColor = RGBA.parseColor(ss[13], RGBA.WHITE);
+                } catch (Throwable e) {
+                    e.printStackTrace();
                 }
             }
         }

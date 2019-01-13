@@ -287,15 +287,15 @@ public class GunType extends InfoType implements IScope {
      */
     public float knockbackModifier = 0F;
 
-    public String crossType;
-    public float crossLength;
-    public float crossSneakRadius;
-    public float crossNormalRadius;
-    public float crossSprintingRadius;
-    public float crossFireRadius;
-    public float crossThick;
-    public float crossSpeed;
-    public RGBA crossColor;
+    private String crossType = null;
+    private Float crossLength = null;
+    private Float crossSneakRadius = null;
+    private Float crossNormalRadius = null;
+    private Float crossSprintingRadius = null;
+    private Float crossFireRadius = null;
+    private Float crossThick = null;
+    private Float crossSpeed = null;
+    private RGBA crossColor = null;
 
     public static String defCrossType = "default";
     public static float defCrossLength = 10F;
@@ -312,15 +312,6 @@ public class GunType extends InfoType implements IScope {
 
     public GunType(TypeFile file) {
         super(file);
-        crossType = defCrossType;
-        crossLength = defCrossLength;
-        crossSneakRadius = defCrossSneakRadius;
-        crossNormalRadius = defCrossNormalRadius;
-        crossSprintingRadius = defCrossSprintingRadius;
-        crossFireRadius = defCrossFireRadius;
-        crossThick = defCrossThick;
-        crossSpeed = defCrossSpeed;
-        crossColor = defCrossColor;
     }
 
     @Override
@@ -341,164 +332,164 @@ public class GunType extends InfoType implements IScope {
     protected void read(String[] split, TypeFile file) {
         super.read(split, file);
         try {
-            if (split[0].equals("Damage"))
+            if (split[0].equalsIgnoreCase("Damage"))
                 damage = Float.parseFloat(split[1]);
-            else if (split[0].equals("MeleeDamage")) {
+            else if (split[0].equalsIgnoreCase("MeleeDamage")) {
                 meleeDamage = Float.parseFloat(split[1]);
                 if (meleeDamage > 0F)
                     secondaryFunction = EnumSecondaryFunction.MELEE;
-            } else if (split[0].equals("CanForceReload"))
+            } else if (split[0].equalsIgnoreCase("CanForceReload"))
                 canForceReload = Boolean.parseBoolean(split[1].toLowerCase());
-            else if (split[0].equals("ReloadTime"))
+            else if (split[0].equalsIgnoreCase("ReloadTime"))
                 reloadTime = Integer.parseInt(split[1]);
-            else if (split[0].equals("Recoil"))
+            else if (split[0].equalsIgnoreCase("Recoil"))
                 recoil = Integer.parseInt(split[1]);
-            else if (split[0].equals("Knockback"))
+            else if (split[0].equalsIgnoreCase("Knockback"))
                 knockback = Float.parseFloat(split[1]);
-            else if (split[0].equals("Accuracy") || split[0].equals("Spread"))
+            else if (split[0].equalsIgnoreCase("Accuracy") || split[0].equalsIgnoreCase("Spread"))
                 bulletSpread = Float.parseFloat(split[1]);
-            else if (split[0].equals("NumBullets"))
+            else if (split[0].equalsIgnoreCase("NumBullets"))
                 numBullets = Integer.parseInt(split[1]);
-            else if (split[0].equals("ConsumeGunOnUse"))
+            else if (split[0].equalsIgnoreCase("ConsumeGunOnUse"))
                 consumeGunUponUse = Boolean.parseBoolean(split[1]);
-            else if (split[0].equals("DropItemOnShoot"))
+            else if (split[0].equalsIgnoreCase("DropItemOnShoot"))
                 dropItemOnShoot = split[1];
-            else if (split[0].equals("NumBurstRounds"))
+            else if (split[0].equalsIgnoreCase("NumBurstRounds"))
                 numBurstRounds = Integer.parseInt(split[1]);
-            else if (split[0].equals("MinigunStartSpeed"))
+            else if (split[0].equalsIgnoreCase("MinigunStartSpeed"))
                 minigunStartSpeed = Float.parseFloat(split[1]);
 
                 //Sounds
-            else if (split[0].equals("ShootDelay"))
+            else if (split[0].equalsIgnoreCase("ShootDelay"))
                 shootDelay = Integer.parseInt(split[1]);
-            else if (split[0].equals("SoundLength"))
+            else if (split[0].equalsIgnoreCase("SoundLength"))
                 shootSoundLength = Integer.parseInt(split[1]);
-            else if (split[0].equals("DistortSound"))
+            else if (split[0].equalsIgnoreCase("DistortSound"))
                 distortSound = split[1].equals("True");
-            else if (split[0].equals("ShootSound")) {
+            else if (split[0].equalsIgnoreCase("ShootSound")) {
                 shootSound = split[1];
                 FlansMod.proxy.loadSound(contentPack, "guns", split[1]);
-            } else if (split[0].equals("ReloadSound")) {
+            } else if (split[0].equalsIgnoreCase("ReloadSound")) {
                 reloadSound = split[1];
                 FlansMod.proxy.loadSound(contentPack, "guns", split[1]);
-            } else if (split[0].equals("IdleSound")) {
+            } else if (split[0].equalsIgnoreCase("IdleSound")) {
                 idleSound = split[1];
                 FlansMod.proxy.loadSound(contentPack, "guns", split[1]);
-            } else if (split[0].equals("IdleSoundLength"))
+            } else if (split[0].equalsIgnoreCase("IdleSoundLength"))
                 idleSoundLength = Integer.parseInt(split[1]);
-            else if (split[0].equals("MeleeSound")) {
+            else if (split[0].equalsIgnoreCase("MeleeSound")) {
                 meleeSound = split[1];
                 FlansMod.proxy.loadSound(contentPack, "guns", split[1]);
             }
 
             //Looping sounds
-            else if (split[0].equals("WarmupSound")) {
+            else if (split[0].equalsIgnoreCase("WarmupSound")) {
                 warmupSound = split[1];
                 FlansMod.proxy.loadSound(contentPack, "guns", split[1]);
-            } else if (split[0].equals("WarmupSoundLength"))
+            } else if (split[0].equalsIgnoreCase("WarmupSoundLength"))
                 warmupSoundLength = Integer.parseInt(split[1]);
-            else if (split[0].equals("LoopedSound") || split[0].equals("SpinSound")) {
+            else if (split[0].equalsIgnoreCase("LoopedSound") || split[0].equalsIgnoreCase("SpinSound")) {
                 loopedSound = split[1];
                 useLoopingSounds = true;
                 FlansMod.proxy.loadSound(contentPack, "guns", split[1]);
-            } else if (split[0].equals("LoopedSoundLength") || split[0].equals("SpinSoundLength"))
+            } else if (split[0].equalsIgnoreCase("LoopedSoundLength") || split[0].equalsIgnoreCase("SpinSoundLength"))
                 loopedSoundLength = Integer.parseInt(split[1]);
-            else if (split[0].equals("CooldownSound")) {
+            else if (split[0].equalsIgnoreCase("CooldownSound")) {
                 cooldownSound = split[1];
                 FlansMod.proxy.loadSound(contentPack, "guns", split[1]);
             }
 
             //Modes and zoom settings
-            else if (split[0].equals("Mode"))
+            else if (split[0].equalsIgnoreCase("Mode"))
                 mode = EnumFireMode.getFireMode(split[1]);
-            else if (split[0].equals("Scope")) {
+            else if (split[0].equalsIgnoreCase("Scope")) {
                 hasScopeOverlay = true;
                 if (split[1].equals("None"))
                     hasScopeOverlay = false;
                 else defaultScopeTexture = split[1];
-            } else if (split[0].equals("ZoomLevel")) {
+            } else if (split[0].equalsIgnoreCase("ZoomLevel")) {
                 zoomLevel = Float.parseFloat(split[1]);
                 if (zoomLevel > 1F)
                     secondaryFunction = EnumSecondaryFunction.ZOOM;
-            } else if (split[0].equals("FOVZoomLevel")) {
+            } else if (split[0].equalsIgnoreCase("FOVZoomLevel")) {
                 FOVFactor = Float.parseFloat(split[1]);
                 if (FOVFactor > 1F)
                     secondaryFunction = EnumSecondaryFunction.ADS_ZOOM;
-            } else if (split[0].equals("Deployable"))
+            } else if (split[0].equalsIgnoreCase("Deployable"))
                 deployable = split[1].equals("True");
-            else if (FMLCommonHandler.instance().getSide().isClient() && deployable && split[0].equals("DeployedModel")) {
+            else if (FMLCommonHandler.instance().getSide().isClient() && deployable && split[0].equalsIgnoreCase("DeployedModel")) {
                 deployableModel = FlansMod.proxy.loadModel(split[1], shortName, ModelMG.class);
-            } else if (FMLCommonHandler.instance().getSide().isClient() && (split[0].equals("Model"))) {
+            } else if (FMLCommonHandler.instance().getSide().isClient() && (split[0].equalsIgnoreCase("Model"))) {
                 model = FlansMod.proxy.loadModel(split[1], shortName, ModelGun.class);
-            } else if (split[0].equals("ModelScale"))
+            } else if (split[0].equalsIgnoreCase("ModelScale"))
                 modelScale = Float.parseFloat(split[1]);
-            else if (split[0].equals("Texture"))
+            else if (split[0].equalsIgnoreCase("Texture"))
                 texture = split[1];
-            else if (split[0].equals("DeployedTexture"))
+            else if (split[0].equalsIgnoreCase("DeployedTexture"))
                 deployableTexture = split[1];
-            else if (split[0].equals("StandBackDistance"))
+            else if (split[0].equalsIgnoreCase("StandBackDistance"))
                 standBackDist = Float.parseFloat(split[1]);
-            else if (split[0].equals("TopViewLimit"))
+            else if (split[0].equalsIgnoreCase("TopViewLimit"))
                 topViewLimit = -Float.parseFloat(split[1]);
-            else if (split[0].equals("BottomViewLimit"))
+            else if (split[0].equalsIgnoreCase("BottomViewLimit"))
                 bottomViewLimit = Float.parseFloat(split[1]);
-            else if (split[0].equals("SideViewLimit"))
+            else if (split[0].equalsIgnoreCase("SideViewLimit"))
                 sideViewLimit = Float.parseFloat(split[1]);
-            else if (split[0].equals("PivotHeight"))
+            else if (split[0].equalsIgnoreCase("PivotHeight"))
                 pivotHeight = Float.parseFloat(split[1]);
-            else if (split[0].equals("Ammo")) {
+            else if (split[0].equalsIgnoreCase("Ammo")) {
                 ShootableType type = ShootableType.getShootableType(split[1]);
                 if (type != null)
                     ammo.add(type);
-            } else if (split[0].equals("NumAmmoSlots") || split[0].equals("NumAmmoItemsInGun") || split[0].equals("LoadIntoGun"))
+            } else if (split[0].equalsIgnoreCase("NumAmmoSlots") || split[0].equalsIgnoreCase("NumAmmoItemsInGun") || split[0].equalsIgnoreCase("LoadIntoGun"))
                 numAmmoItemsInGun = Integer.parseInt(split[1]);
-            else if (split[0].equals("BulletSpeed"))
+            else if (split[0].equalsIgnoreCase("BulletSpeed"))
                 bulletSpeed = Float.parseFloat(split[1]);
-            else if (split[0].equals("CanShootUnderwater"))
+            else if (split[0].equalsIgnoreCase("CanShootUnderwater"))
                 canShootUnderwater = Boolean.parseBoolean(split[1].toLowerCase());
-            else if (split[0].equals("OneHanded"))
+            else if (split[0].equalsIgnoreCase("OneHanded"))
                 oneHanded = Boolean.parseBoolean(split[1].toLowerCase());
-            else if (split[0].equals("SecondaryFunction"))
+            else if (split[0].equalsIgnoreCase("SecondaryFunction"))
                 secondaryFunction = EnumSecondaryFunction.get(split[1]);
-            else if (split[0].equals("UsableByPlayers"))
+            else if (split[0].equalsIgnoreCase("UsableByPlayers"))
                 usableByPlayers = Boolean.parseBoolean(split[1]);
-            else if (split[0].equals("UsableByMechas"))
+            else if (split[0].equalsIgnoreCase("UsableByMechas"))
                 usableByMechas = Boolean.parseBoolean(split[1]);
 
                 //Custom Melee Stuff
-            else if (split[0].equals("UseCustomMelee") && Boolean.parseBoolean(split[1]))
+            else if (split[0].equalsIgnoreCase("UseCustomMelee") && Boolean.parseBoolean(split[1]))
                 secondaryFunction = EnumSecondaryFunction.CUSTOM_MELEE;
-            else if (split[0].equals("MeleeTime"))
+            else if (split[0].equalsIgnoreCase("MeleeTime"))
                 meleeTime = Integer.parseInt(split[1]);
-            else if (split[0].equals("AddNode")) {
+            else if (split[0].equalsIgnoreCase("AddNode")) {
                 meleePath.add(new Vector3f(Float.parseFloat(split[1]) / 16F, Float.parseFloat(split[2]) / 16F, Float.parseFloat(split[3]) / 16F));
                 meleePathAngles.add(new Vector3f(Float.parseFloat(split[4]), Float.parseFloat(split[5]), Float.parseFloat(split[6])));
-            } else if (split[0].equals("MeleeDamagePoint") || split[0].equals("MeleeDamageOffset")) {
+            } else if (split[0].equalsIgnoreCase("MeleeDamagePoint") || split[0].equalsIgnoreCase("MeleeDamageOffset")) {
                 meleeDamagePoints.add(new Vector3f(Float.parseFloat(split[1]) / 16F, Float.parseFloat(split[2]) / 16F, Float.parseFloat(split[3]) / 16F));
             }
 
             //Player modifiers
-            else if (split[0].equals("MoveSpeedModifier") || split[0].equals("Slowness"))
+            else if (split[0].equalsIgnoreCase("MoveSpeedModifier") || split[0].equalsIgnoreCase("Slowness"))
                 moveSpeedModifier = Float.parseFloat(split[1]);
-            else if (split[0].equals("KnockbackReduction") || split[0].equals("KnockbackModifier"))
+            else if (split[0].equalsIgnoreCase("KnockbackReduction") || split[0].equalsIgnoreCase("KnockbackModifier"))
                 knockbackModifier = Float.parseFloat(split[1]);
 
                 //Attachment settings
-            else if (split[0].equals("AllowAllAttachments"))
+            else if (split[0].equalsIgnoreCase("AllowAllAttachments"))
                 allowAllAttachments = Boolean.parseBoolean(split[1].toLowerCase());
-            else if (split[0].equals("AllowAttachments")) {
+            else if (split[0].equalsIgnoreCase("AllowAttachments")) {
                 for (int i = 1; i < split.length; i++) {
                     allowedAttachments.add(AttachmentType.getAttachment(split[i]));
                 }
-            } else if (split[0].equals("AllowBarrelAttachments"))
+            } else if (split[0].equalsIgnoreCase("AllowBarrelAttachments"))
                 allowBarrelAttachments = Boolean.parseBoolean(split[1].toLowerCase());
-            else if (split[0].equals("AllowScopeAttachments"))
+            else if (split[0].equalsIgnoreCase("AllowScopeAttachments"))
                 allowScopeAttachments = Boolean.parseBoolean(split[1].toLowerCase());
-            else if (split[0].equals("AllowStockAttachments"))
+            else if (split[0].equalsIgnoreCase("AllowStockAttachments"))
                 allowStockAttachments = Boolean.parseBoolean(split[1].toLowerCase());
-            else if (split[0].equals("AllowGripAttachments"))
+            else if (split[0].equalsIgnoreCase("AllowGripAttachments"))
                 allowGripAttachments = Boolean.parseBoolean(split[1].toLowerCase());
-            else if (split[0].equals("NumGenericAttachmentSlots"))
+            else if (split[0].equalsIgnoreCase("NumGenericAttachmentSlots"))
                 numGenericAttachmentSlots = Integer.parseInt(split[1]);
 
                 //Paintjobs
@@ -517,25 +508,25 @@ public class GunType extends InfoType implements IScope {
                 shieldDimensions = new Vector3f(Float.parseFloat(split[5]) / 16F, Float.parseFloat(split[6]) / 16F, Float.parseFloat(split[7]) / 16F);
             }
             // crossHair Settings
-            else if (split[0].toLowerCase().equals("crossType")) {
-                crossType = split[1].toLowerCase();
-                if (crossType.isEmpty()) crossType = defCrossType;
-            } else if (split[0].toLowerCase().equals("crossLength")) {
-                crossLength = Float.parseFloat(split[1].toLowerCase());
-            } else if (split[0].toLowerCase().equals("crossSneakRadius")) {
-                crossSneakRadius = Float.parseFloat(split[1].toLowerCase());
-            } else if (split[0].toLowerCase().equals("crossNormalRadius")) {
-                crossNormalRadius = Float.parseFloat(split[1].toLowerCase());
-            } else if (split[0].toLowerCase().equals("crossSprintingRadius")) {
-                crossSprintingRadius = Float.parseFloat(split[1].toLowerCase());
-            } else if (split[0].toLowerCase().equals("crossFireRadius")) {
-                crossFireRadius = Float.parseFloat(split[1].toLowerCase());
-            } else if (split[0].toLowerCase().equals("crossThick")) {
-                crossThick = Float.parseFloat(split[1].toLowerCase());
-            } else if (split[0].toLowerCase().equals("crossSpeed")) {
-                crossSpeed = Float.parseFloat(split[1].toLowerCase());
-            } else if (split[0].toLowerCase().equals("crossColor")) {
-                crossColor = RGBA.parseColor(split[1].toLowerCase());
+            else if (split[0].equalsIgnoreCase("crossType")) {
+                crossType = split[1];
+                if (crossType.isEmpty()) crossType = null;
+            } else if (split[0].equalsIgnoreCase("crossLength")) {
+                crossLength = Float.valueOf(split[1]);
+            } else if (split[0].equalsIgnoreCase("crossSneakRadius")) {
+                crossSneakRadius = Float.valueOf(split[1]);
+            } else if (split[0].equalsIgnoreCase("crossNormalRadius")) {
+                crossNormalRadius = Float.valueOf(split[1]);
+            } else if (split[0].equalsIgnoreCase("crossSprintingRadius")) {
+                crossSprintingRadius = Float.valueOf(split[1]);
+            } else if (split[0].equalsIgnoreCase("crossFireRadius")) {
+                crossFireRadius = Float.valueOf(split[1]);
+            } else if (split[0].equalsIgnoreCase("crossThick")) {
+                crossThick = Float.valueOf(split[1]);
+            } else if (split[0].equalsIgnoreCase("crossSpeed")) {
+                crossSpeed = Float.valueOf(split[1]);
+            } else if (split[0].equalsIgnoreCase("crossColor")) {
+                crossColor = RGBA.parseColor(split[1], null);
             }
         } catch (Exception e) {
             System.out.println("Reading gun file failed.");
@@ -914,5 +905,41 @@ public class GunType extends InfoType implements IScope {
                 return paintjob;
         }
         return defaultPaintjob;
+    }
+
+    public String getCrossType() {
+        return crossType == null || crossType.isEmpty() ? defCrossType : crossType;
+    }
+
+    public float getCrossLength() {
+        return crossLength == null ? defCrossLength : crossLength;
+    }
+
+    public float getCrossSneakRadius() {
+        return crossSneakRadius == null ? defCrossSneakRadius : crossSneakRadius;
+    }
+
+    public float getCrossNormalRadius() {
+        return crossNormalRadius == null ? defCrossNormalRadius : crossNormalRadius;
+    }
+
+    public float getCrossSprintingRadius() {
+        return crossSprintingRadius == null ? defCrossSprintingRadius : crossSprintingRadius;
+    }
+
+    public float getCrossFireRadius() {
+        return crossFireRadius == null ? defCrossFireRadius : crossFireRadius;
+    }
+
+    public float getCrossThick() {
+        return crossThick == null ? defCrossThick : crossThick;
+    }
+
+    public float getCrossSpeed() {
+        return crossSpeed == null ? defCrossSpeed : crossSpeed;
+    }
+
+    public RGBA getCrossColor() {
+        return crossColor == null ? defCrossColor : crossColor;
     }
 }

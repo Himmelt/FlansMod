@@ -68,7 +68,7 @@ public class FlansModClient extends FlansMod {
     public static int fireTicks = 0;
     public static GunType gunType = null;
     public static float crossRadius = 5F;
-    public static float crossTarget = 5F;
+    public static float targetRadius = 5F;
 
     //Recoil variables
     /**
@@ -272,25 +272,23 @@ public class FlansModClient extends FlansMod {
         ItemStack stack = player.getHeldItem();
         if (stack != null && stack.getItem() instanceof ItemGun) {
             gunType = ((ItemGun) stack.getItem()).type;
+            float speed = gunType.getCrossSpeed();
             if (FMLEventHandler.isSneaking(player.getUniqueID())) {
-                FlansModClient.crossTarget = gunType.crossSneakRadius;
+                FlansModClient.targetRadius = gunType.getCrossSneakRadius();
             } else if (player.isSprinting()) {
-                FlansModClient.crossTarget = gunType.crossSprintingRadius;
-            } else FlansModClient.crossTarget = gunType.crossNormalRadius;
-            if (crossRadius - crossTarget > gunType.crossSpeed) crossRadius -= gunType.crossSpeed;
-            else if (crossRadius - crossTarget < -gunType.crossSpeed) crossRadius += gunType.crossSpeed;
-            else crossRadius = crossTarget;
-        }
+                FlansModClient.targetRadius = gunType.getCrossSprintingRadius();
+            } else FlansModClient.targetRadius = gunType.getCrossNormalRadius();
+            if (crossRadius - targetRadius > speed) crossRadius -= speed;
+            else if (crossRadius - targetRadius < -speed) crossRadius += speed;
+            else crossRadius = targetRadius;
+        } else gunType = null;
 
-        if (fireTicks > 0) fireTicks--;
+        //if (fireTicks > 0) fireTicks--;
 
         // Guns
-        if (shootTimeLeft > 0)
-            shootTimeLeft--;
-        if (shootTimeRight > 0)
-            shootTimeRight--;
-        if (scopeTime > 0)
-            scopeTime--;
+        if (shootTimeLeft > 0) shootTimeLeft--;
+        if (shootTimeRight > 0) shootTimeRight--;
+        if (scopeTime > 0) scopeTime--;
         //if (playerRecoil > 0) playerRecoil *= 0.8F;
         //player.rotationPitch -= playerRecoil;
         //antiRecoil += playerRecoil;

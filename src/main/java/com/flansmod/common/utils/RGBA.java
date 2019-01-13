@@ -22,13 +22,13 @@ public class RGBA {
         this.OPACITY = opacity;
     }
 
-    public static RGBA parseColor(String string) {
-        Matcher matcher = COLOR.matcher(string);
+    public static RGBA parseColor(String string, RGBA def) {
+        Matcher matcher = COLOR.matcher(string.replaceAll(" ", ""));
         if (matcher.find()) {
             String[] ss = matcher.group().replaceAll("(rgba|\\(|\\))", "").split(",");
             return new RGBA(Integer.parseInt(ss[0]), Integer.parseInt(ss[1]), Integer.parseInt(ss[2]), Integer.parseInt(ss[3]));
         }
-        return WHITE;
+        return def;
     }
 
     public String toString() {

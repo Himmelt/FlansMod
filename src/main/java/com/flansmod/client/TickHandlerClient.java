@@ -335,23 +335,34 @@ public class TickHandlerClient {
         float centerX = screenWidth / 2.0F, centerY = screenHeight / 2.0F;
         float[] xx = new float[8], yy = new float[8];
         float[] points = new float[16];
+        float length = gunType.getCrossLength();
+        float thickness = gunType.getCrossThick();
         xx[0] = centerX - radius;
-        xx[1] = xx[0] - gunType.crossLength;
+        xx[1] = xx[0] - length;
         xx[2] = centerX + radius;
-        xx[3] = xx[2] + gunType.crossLength;
+        xx[3] = xx[2] + length;
         yy[0] = yy[1] = yy[2] = yy[3] = centerY;
 
         yy[4] = centerY - radius;
-        yy[5] = yy[4] - gunType.crossLength;
+        yy[5] = yy[4] - length;
         yy[6] = centerY + radius;
-        yy[7] = yy[6] + gunType.crossLength;
+        yy[7] = yy[6] + length;
         xx[4] = xx[5] = xx[6] = xx[7] = centerX;
+
+//        xx[8] = centerX - thickness / 2;
+//        xx[9] = centerX + thickness / 2;
+//        yy[8] = yy[9] = centerY;
+//        yy[10] = centerY - thickness / 2;
+//        yy[11] = centerY + thickness / 2;
+//        xx[10] = xx[11] = centerX;
+
         for (int i = 0; i < 8; i++) {
             points[i * 2] = xx[i];
             points[i * 2 + 1] = yy[i];
         }
 
-        RenderHelper.drawLines(points, gunType.crossThick, gunType.crossColor, true);
+        RenderHelper.drawFilledRectangle(centerX - thickness / 4, centerY - thickness / 4, centerX + thickness / 2, centerY + thickness / 2, gunType.getCrossColor(), false);
+        RenderHelper.drawLines(points, gunType.getCrossThick(), gunType.getCrossColor(), false);
     }
 
     private boolean drawCrossHair(int screenWidth, int screenHeight, int offset, float scale) {
