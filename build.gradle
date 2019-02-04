@@ -1,0 +1,41 @@
+buildscript {
+    repositories {
+        maven {
+            url 'https://maven.aliyun.com/repository/public'
+        }
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+            //url = "https://lss233.com/artifactory/minecraft"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.0-SNAPSHOT'
+    }
+}
+
+apply plugin: 'forge'
+
+version = "1.6.4-4.1.2"
+group = "com.flansmod"
+archivesBaseName = "FlansMod"
+
+sourceCompatibility = targetCompatibility = 1.7
+
+minecraft {
+    version = "1.6.4-9.11.1.964"
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version': project.version, 'mcversion': project.minecraft.version
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
