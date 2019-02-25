@@ -207,7 +207,7 @@ public class ItemGun extends Item {
                     animations = FlansModClient.gunAnimations.get(player);
                 else {
                     animations = new GunAnimations();
-                    FlansModClient.gunAnimations.put((EntityLivingBase) player, animations);
+                    FlansModClient.gunAnimations.put(player, animations);
                 }
                 int pumpDelay = type.model == null ? 0 : type.model.pumpDelay;
                 int pumpTime = type.model == null ? 1 : type.model.pumpTime;
@@ -237,11 +237,9 @@ public class ItemGun extends Item {
 
     @Override
     public void onUpdate(ItemStack itemstack, World world, Entity entity, int i, boolean flag) {
-        if (world.isRemote)
-            onUpdateClient(itemstack, world, entity, i, flag);
+        if (world.isRemote) onUpdateClient(itemstack, world, entity, i, flag);
         else onUpdateServer(itemstack, world, entity, i, flag);
     }
-
 
     public ItemStack onMouseHeld(ItemStack stack, World world, EntityPlayerMP player, boolean isShooting) {
         FlansModPlayerData data = FlansModPlayerHandler.getPlayerData(player);
@@ -406,7 +404,23 @@ public class ItemGun extends Item {
             // Spawn the bullet entities
 
             for (int k = 0; k < type.numBullets; k++) {
-                world.spawnEntityInWorld(((ItemBullet) bulletStack.getItem()).getEntity(world, entityplayer, (entityplayer.isSneaking() ? 0.7F : 1F) * type.getSpread(stack), type.getDamage(stack), type.getBulletSpeed(stack), type.numBullets > 1, bulletStack.getItemDamage(), type));
+
+                ItemBullet bulletstack = (ItemBullet) bulletStack.getItem();
+                float bulletSpread = (entityplayer.isSneaking() ? 0.7F : 1.0F) * type.getSpread(stack);
+                float damage = type.getDamage(stack);
+                float bulletSpeed = type.getBulletSpeed(stack);
+                boolean b = type.numBullets > 1;
+                int itemDamage = bulletStack.getItemDamage();
+                if (world.isRemote) {
+                    Entity entity = bulletstack.getEntity(world, entityplayer, bulletSpread, damage, bulletSpeed, b, itemDamage, type);
+                    world.spawnEntityInWorld(entity);
+                    //System.out.println("客户端创建子弹!");
+                } else {
+                    RunningBullet running = bulletstack.getBullet(world, entityplayer, bulletSpread, damage, bulletSpeed, b, itemDamage, type);
+                    RunningBulletManager.getManager(world).spawn(running);
+                    //System.out.println("服务端创建子弹!");
+                }
+                //world.spawnEntityInWorld(((ItemBullet) bulletStack.getItem()).getEntity(world, entityplayer, (entityplayer.isSneaking() ? 0.7F : 1F) * type.getSpread(stack), type.getDamage(stack), type.getBulletSpeed(stack), type.numBullets > 1, bulletStack.getItemDamage(), type));
             }
             // Drop item on shooting if bullet requires it
             if (bullet.dropItemOnShoot != null && !entityplayer.capabilities.isCreativeMode)

@@ -6,7 +6,6 @@ buildscript {
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
-            //url = "https://lss233.com/artifactory/minecraft"
         }
     }
     dependencies {
@@ -26,7 +25,15 @@ minecraft {
     version = "1.6.4-9.11.1.964"
 }
 
+dependencies {
+    compile 'com.google.guava:guava:14.0'
+    compile 'org.lwjgl.lwjgl:lwjgl:2.9.0'
+    compile 'net.sourceforge.argo:argo:2.25'
+}
+
 processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
         expand 'version': project.version, 'mcversion': project.minecraft.version

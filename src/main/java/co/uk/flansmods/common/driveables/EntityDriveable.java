@@ -7,6 +7,7 @@ import co.uk.flansmods.client.debug.EntityDebugVector;
 import co.uk.flansmods.common.FlansMod;
 import co.uk.flansmods.common.RotatedAxes;
 import co.uk.flansmods.common.guns.EntityBullet;
+import co.uk.flansmods.common.guns.RunningBullet;
 import co.uk.flansmods.common.network.PacketDriveableDamage;
 import co.uk.flansmods.common.network.PacketDriveableKeyHeld;
 import co.uk.flansmods.common.vector.Vector3f;
@@ -939,6 +940,28 @@ public abstract class EntityDriveable extends Entity implements IControllable, I
         return false;
     }
 
+    public boolean attackFromBullet(RunningBullet bullet, Vector3f origin, Vector3f motion) {
+        //Get the position of the bullet origin, relative to the centre of the plane, and then rotate the vectors onto local co-ordinates
+        Vector3f relativePosVector = Vector3f.sub(origin, new Vector3f((float) posX, (float) posY, (float) posZ), null);
+        Vector3f rotatedPosVector = axes.findGlobalVectorLocally(relativePosVector);
+        Vector3f rotatedMotVector = axes.findGlobalVectorLocally(motion);
+        //Check each part
+        for (DriveablePart part : getDriveableData().parts.values()) {
+            //Ray trace the bullet
+            if (part.rayTrace(this, bullet, rotatedPosVector, rotatedMotVector)) {
+                //This is server side bsns
+                if (worldObj.isRemote)
+                    return true;
+                checkParts();
+
+                //If it hit, send a damage update packet
+                PacketDispatcher.sendPacketToAllAround(posX, posY, posZ, 100, dimension, PacketDriveableDamage.buildUpdatePacket(this));
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * A simple raytracer for the driveable
      */
@@ -950,7 +973,7 @@ public abstract class EntityDriveable extends Entity implements IControllable, I
         //Check each part
         for (DriveablePart part : getDriveableData().parts.values()) {
             //Ray trace the bullet
-            if (part.rayTrace(this, null, rotatedPosVector, rotatedMotVector)) {
+            if (part.rayTrace(this, (EntityBullet) null, rotatedPosVector, rotatedMotVector)) {
                 return part;
             }
         }
@@ -1067,7 +1090,7 @@ public abstract class EntityDriveable extends Entity implements IControllable, I
 
     @SideOnly(Side.CLIENT)
     public boolean showInventory(int seat) {
-        return seat == 0 ? !FlansModClient.controlModeMouse : true;
+        return seat != 0 || !FlansModClient.controlModeMouse;
     }
 
 

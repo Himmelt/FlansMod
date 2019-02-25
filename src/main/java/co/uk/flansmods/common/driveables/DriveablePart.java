@@ -1,6 +1,7 @@
 package co.uk.flansmods.common.driveables;
 
 import co.uk.flansmods.common.guns.EntityBullet;
+import co.uk.flansmods.common.guns.RunningBullet;
 import co.uk.flansmods.common.vector.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -93,6 +94,30 @@ public class DriveablePart {
         return hit;
     }
 
+    public boolean rayTrace(EntityDriveable driveable, RunningBullet bullet, Vector3f origin, Vector3f motion) {
+        if (box == null || health <= 0 || dead)
+            return false;
+        if (!driveable.canHitPart(type))
+            return false;
+
+        //Complicated. Will explain later. Someone remind me.
+        boolean enteringX = coordIsEntering(origin.x, origin.x + motion.x, box.x / 16F, (box.x + box.w) / 16F);
+        boolean enteringY = coordIsEntering(origin.y, origin.y + motion.y, box.y / 16F, (box.y + box.h) / 16F);
+        boolean enteringZ = coordIsEntering(origin.z, origin.z + motion.z, box.z / 16F, (box.z + box.d) / 16F);
+        boolean inX = coordIsIn(origin.x, origin.x + motion.x, box.x / 16F, (box.x + box.w) / 16F);
+        boolean inY = coordIsIn(origin.y, origin.y + motion.y, box.y / 16F, (box.y + box.h) / 16F);
+        boolean inZ = coordIsIn(origin.z, origin.z + motion.z, box.z / 16F, (box.z + box.d) / 16F);
+        boolean hit = (enteringX && inY && inZ) || (inX && enteringY && inZ) || (inX && inY && enteringZ);
+
+        //If the bullet hits, perform damage code here, and then tell the bullet that it hit
+        if (bullet != null && hit) {
+            health -= bullet.damage * bullet.type.damageVsDriveable;
+            if (bullet.type.fire > 0)
+                onFire = true;
+        }
+        return hit;
+    }
+
     /**
      * Ray traces a single co-ordinate
      * But only returns true once upon entering the box, and not while in or exiting
@@ -108,9 +133,7 @@ public class DriveablePart {
         if (start < min && end >= min)
             return true;
         //Check to see if ray entered from the right hand side
-        if (start > max && end <= max)
-            return true;
-        return false;
+        return start > max && end <= max;
     }
 
     /**
@@ -133,9 +156,7 @@ public class DriveablePart {
         //Check to see if the start and end points are either side of the interval
         if (start < min && end > max)
             return true;
-        if (end < min && start > max)
-            return true;
-        return false;
+        return end < min && start > max;
     }
 
     public void attack(float damage, boolean fireDamage) {

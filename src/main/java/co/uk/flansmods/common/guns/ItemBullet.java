@@ -78,4 +78,8 @@ public class ItemBullet extends Item {
                             int itemDamage, InfoType shotFrom) {
         return new EntityBullet(worldObj, player, bulletSpread, damage, this.type, bulletSpeed, b, shotFrom);
     }
+
+    public RunningBullet getBullet(World world, EntityLivingBase shooter, float bulletSpread, float gunDamage, float bulletSpeed, boolean b, int itemDamage, InfoType shotType) {
+        return new RunningBullet(world, shooter, bulletSpread, gunDamage, this.type, bulletSpeed, b, shotType);
+    }
 }

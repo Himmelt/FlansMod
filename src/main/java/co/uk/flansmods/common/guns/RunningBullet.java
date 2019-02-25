@@ -1,46 +1,37 @@
 package co.uk.flansmods.common.guns;
 
-import co.uk.flansmods.client.FlansModClient;
 import co.uk.flansmods.common.FlansMod;
+import co.uk.flansmods.common.FlansModPlayerData;
+import co.uk.flansmods.common.FlansModPlayerHandler;
 import co.uk.flansmods.common.InfoType;
 import co.uk.flansmods.common.driveables.EntityDriveable;
-import co.uk.flansmods.common.driveables.EntityPlane;
 import co.uk.flansmods.common.driveables.EntitySeat;
-import co.uk.flansmods.common.driveables.EntityVehicle;
-import co.uk.flansmods.common.driveables.mechas.EntityMecha;
 import co.uk.flansmods.common.network.PacketFlak;
+import co.uk.flansmods.common.teams.Team;
 import co.uk.flansmods.common.teams.TeamsManager;
 import co.uk.flansmods.common.vector.Vector3f;
-import cpw.mods.fml.common.FMLCommonHandler;
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
+import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.EntityFX;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumEntitySize;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
-import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 
 public class RunningBullet implements IEntityAdditionalSpawnData {
     public RunningBulletManager manager;
-    private static int bulletLife = 600;
     public Entity owner;
     private int ticksInAir;
     public BulletType type;
@@ -58,7 +49,7 @@ public class RunningBullet implements IEntityAdditionalSpawnData {
     public double motionY;
     public double motionZ;
     public World worldObj;
-    public final AxisAlignedBB boundingBox;
+    public final AxisAlignedBB boundingBox = AxisAlignedBB.getBoundingBox(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
     private boolean firstUpdate;
     public EnumEntitySize myEntitySize;
     public float width;
@@ -85,6 +76,7 @@ public class RunningBullet implements IEntityAdditionalSpawnData {
     public int dimension;
     public boolean captureDrops;
     public ArrayList<EntityItem> capturedDrops;
+    private static int bulletLife = 600;
 
     public RunningBullet(World world) {
         this();
@@ -100,14 +92,70 @@ public class RunningBullet implements IEntityAdditionalSpawnData {
         this.pingOfShooter = 0;
         this.captureDrops = false;
         this.capturedDrops = new ArrayList<>();
-        this.boundingBox = AxisAlignedBB.getBoundingBox(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
         this.width = 0.6F;
         this.height = 1.8F;
         this.rand = new Random();
         this.firstUpdate = true;
         this.myEntitySize = EnumEntitySize.SIZE_2;
         this.setPosition(0.0D, 0.0D, 0.0D);
-        this.entityInit();
+    }
+
+    private RunningBullet(World world, EntityLivingBase shooter, float gunDamage, BulletType bulletType, InfoType shotFrom) {
+        this(world);
+        this.owner = shooter;
+        if (shooter instanceof EntityPlayerMP) {
+            this.pingOfShooter = ((EntityPlayerMP) shooter).ping;
+        }
+        this.type = bulletType;
+        this.firedFrom = shotFrom;
+        this.damage = gunDamage;
+    }
+
+    public RunningBullet(World world, EntityLivingBase shooter, float spread, float gunDamage, BulletType bulletType, float speed, boolean shot, InfoType shotFrom) {
+        this(world,
+                Vec3.createVectorHelper(shooter.posX, shooter.posY + (double) shooter.getEyeHeight(), shooter.posZ),
+                shooter.rotationYaw, shooter.rotationPitch,
+                shooter, spread, gunDamage, bulletType, speed, shotFrom);
+        this.shotgun = shot;
+    }
+
+    public RunningBullet(World world, Vec3 origin, float yaw, float pitch, EntityLivingBase shooter, float spread, float gunDamage, BulletType bulletType, float speed, InfoType shotFrom) {
+        this(world, shooter, gunDamage, bulletType, shotFrom);
+        this.setLocationAndAngles(origin.xCoord, origin.yCoord, origin.zCoord, yaw, pitch);
+        this.setPosition(this.posX, this.posY, this.posZ);
+        this.yOffset = 0.0F;
+        this.motionX = (double) (-MathHelper.sin(this.rotationYaw / 180.0F * 3.1415927F) * MathHelper.cos(this.rotationPitch / 180.0F * 3.1415927F));
+        this.motionZ = (double) (MathHelper.cos(this.rotationYaw / 180.0F * 3.1415927F) * MathHelper.cos(this.rotationPitch / 180.0F * 3.1415927F));
+        this.motionY = (double) (-MathHelper.sin(this.rotationPitch / 180.0F * 3.141593F));
+        this.setArrowHeading(this.motionX, this.motionY, this.motionZ, spread / 2.0F, speed);
+    }
+
+    public void setLocationAndAngles(double p_70012_1_, double p_70012_3_, double p_70012_5_, float p_70012_7_, float p_70012_8_) {
+        this.lastTickPosX = this.prevPosX = this.posX = p_70012_1_;
+        this.lastTickPosY = this.prevPosY = this.posY = p_70012_3_ + (double) this.yOffset;
+        this.lastTickPosZ = this.prevPosZ = this.posZ = p_70012_5_;
+        this.rotationYaw = p_70012_7_;
+        this.rotationPitch = p_70012_8_;
+        this.setPosition(this.posX, this.posY, this.posZ);
+    }
+
+    public void setArrowHeading(double d, double d1, double d2, float spread, float speed) {
+        float f2 = MathHelper.sqrt_double(d * d + d1 * d1 + d2 * d2);
+        d /= f2;
+        d1 /= f2;
+        d2 /= f2;
+        d += rand.nextGaussian() * 0.005D * spread;
+        d1 += rand.nextGaussian() * 0.005D * spread;
+        d2 += rand.nextGaussian() * 0.005D * spread;
+        d *= speed;
+        d1 *= speed;
+        d2 *= speed;
+        motionX = d;
+        motionY = d1;
+        motionZ = d2;
+        float f3 = MathHelper.sqrt_double(d * d + d2 * d2);
+        prevRotationYaw = rotationYaw = (float) ((Math.atan2(d, d2) * 180D) / 3.1415927410125732D);
+        prevRotationPitch = rotationPitch = (float) ((Math.atan2(d1, f3) * 180D) / 3.1415927410125732D);
     }
 
     protected void setSize(float width, float height) {
@@ -140,513 +188,266 @@ public class RunningBullet implements IEntityAdditionalSpawnData {
 
     }
 
-    private RunningBullet(World world, EntityLivingBase shooter, float gunDamage, BulletType bulletType, InfoType shotFrom) {
-        this(world);
-        this.owner = shooter;
-        if (shooter instanceof EntityPlayerMP) {
-            this.pingOfShooter = ((EntityPlayerMP) shooter).ping;
-        }
-
-        this.type = bulletType;
-        this.firedFrom = shotFrom;
-        this.damage = gunDamage;
-        this.penetratingPower = this.type.penetratingPower;
+    public void setPosition(double posX, double posY, double posZ) {
+        this.posX = posX;
+        this.posY = posY;
+        this.posZ = posZ;
+        float f = this.width / 2.0F;
+        float f1 = this.height;
+        this.boundingBox.setBounds(posX - (double) f, posY - (double) this.yOffset + (double) this.ySize, posZ - (double) f, posX + (double) f, posY - (double) this.yOffset + (double) this.ySize + (double) f1, posZ + (double) f);
     }
 
-    public RunningBullet(World world, EntityLivingBase shooter, float spread, float gunDamage, BulletType bulletType, float speed, boolean shot, InfoType shotFrom) {
-        this(world,
-                Vec3.createVectorHelper(shooter.posX, shooter.posY + (double) shooter.getEyeHeight(), shooter.posZ),
-                shooter.rotationYaw, shooter.rotationPitch,
-                shooter, spread, gunDamage, bulletType, speed, shotFrom);
-        this.shotgun = shot;
-    }
-
-    public RunningBullet(World world, Vec3 origin, float yaw, float pitch, EntityLivingBase shooter, float spread, float gunDamage, BulletType type1, InfoType shotFrom) {
-        this(world, origin, yaw, pitch, shooter, spread, gunDamage, type1, 3.0F, shotFrom);
-    }
-
-    public RunningBullet(World world, Vec3 origin, float yaw, float pitch, EntityLivingBase shooter, float spread, float gunDamage, BulletType bulletType, float speed, InfoType shotFrom) {
-        this(world, shooter, gunDamage, bulletType, shotFrom);
-        this.setLocationAndAngles(origin.xCoord, origin.yCoord, origin.zCoord, yaw, pitch);
-        this.setPosition(this.posX, this.posY, this.posZ);
-        this.yOffset = 0.0F;
-        this.motionX = (double) (-MathHelper.sin(this.rotationYaw / 180.0F * 3.1415927F) * MathHelper.cos(this.rotationPitch / 180.0F * 3.1415927F));
-        this.motionZ = (double) (MathHelper.cos(this.rotationYaw / 180.0F * 3.1415927F) * MathHelper.cos(this.rotationPitch / 180.0F * 3.1415927F));
-        this.motionY = (double) (-MathHelper.sin(this.rotationPitch / 180.0F * 3.141593F));
-        this.setArrowHeading(this.motionX, this.motionY, this.motionZ, spread / 2.0F, speed);
-    }
-
-    public RunningBullet(World world, Vector3f origin, Vector3f direction, EntityLivingBase shooter, float spread, float gunDamage, BulletType bulletType, float speed, InfoType shotFrom) {
-        this(world, shooter, gunDamage, bulletType, shotFrom);
-        this.damage = gunDamage;
-        this.setPosition((double) origin.x, (double) origin.y, (double) origin.z);
-        this.motionX = (double) direction.x;
-        this.motionY = (double) direction.y;
-        this.motionZ = (double) direction.z;
-        this.setArrowHeading(this.motionX, this.motionY, this.motionZ, spread, speed);
-    }
-
-    public RunningBullet(World world, Vec3 origin, float yaw, float pitch, double motX, double motY, double motZ, EntityLivingBase shooter, float gunDamage, BulletType type1, InfoType shotFrom) {
-        this(world, shooter, gunDamage, type1, shotFrom);
-        this.setLocationAndAngles(origin.xCoord, origin.yCoord, origin.zCoord, yaw, pitch);
-        this.setPosition(this.posX, this.posY, this.posZ);
-        this.yOffset = 0.0F;
-        this.motionX = motX;
-        this.motionY = motY;
-        this.motionZ = motZ;
-    }
-
-    public void setLocationAndAngles(double p_70012_1_, double p_70012_3_, double p_70012_5_, float p_70012_7_, float p_70012_8_) {
-        this.lastTickPosX = this.prevPosX = this.posX = p_70012_1_;
-        this.lastTickPosY = this.prevPosY = this.posY = p_70012_3_ + (double) this.yOffset;
-        this.lastTickPosZ = this.prevPosZ = this.posZ = p_70012_5_;
-        this.rotationYaw = p_70012_7_;
-        this.rotationPitch = p_70012_8_;
-        this.setPosition(this.posX, this.posY, this.posZ);
-    }
-
-    protected void entityInit() {
-    }
-
-    public void setArrowHeading(double d, double d1, double d2, float spread, float speed) {
-        float f2 = MathHelper.sqrt_double(d * d + d1 * d1 + d2 * d2);
-        d /= (double) f2;
-        d1 /= (double) f2;
-        d2 /= (double) f2;
-        d *= (double) speed;
-        d1 *= (double) speed;
-        d2 *= (double) speed;
-        d += this.rand.nextGaussian() * 0.005D * (double) spread * (double) speed;
-        d1 += this.rand.nextGaussian() * 0.005D * (double) spread * (double) speed;
-        d2 += this.rand.nextGaussian() * 0.005D * (double) spread * (double) speed;
-        this.motionX = d;
-        this.motionY = d1;
-        this.motionZ = d2;
-        float f3 = MathHelper.sqrt_double(d * d + d2 * d2);
-        this.prevRotationYaw = this.rotationYaw = (float) (Math.atan2(d, d2) * 180.0D / 3.1415927410125732D);
-        this.prevRotationPitch = this.rotationPitch = (float) (Math.atan2(d1, (double) f3) * 180.0D / 3.1415927410125732D);
-        this.getLockOnTarget();
-    }
-
-    private void getLockOnTarget() {
-        if (this.type.lockOnToPlanes || this.type.lockOnToVehicles || this.type.lockOnToMechas || this.type.lockOnToLivings || this.type.lockOnToPlayers) {
-            Vector3f motionVec = new Vector3f(this.motionX, this.motionY, this.motionZ);
-            Entity closestEntity = null;
-            float closestAngle = this.type.maxLockOnAngle * 3.1415927F / 180.0F;
-            Iterator i$ = this.worldObj.loadedEntityList.iterator();
-
-            while (true) {
-                Entity entity;
-                do {
-                    if (!i$.hasNext()) {
-                        if (closestEntity != null) {
-                            this.lockedOnTo = closestEntity;
-                        }
-
-                        return;
-                    }
-
-                    Object obj = i$.next();
-                    entity = (Entity) obj;
-                } while ((!this.type.lockOnToMechas || !(entity instanceof EntityMecha)) && (!this.type.lockOnToVehicles || !(entity instanceof EntityVehicle)) && (!this.type.lockOnToPlanes || !(entity instanceof EntityPlane)) && (!this.type.lockOnToPlayers || !(entity instanceof EntityPlayer)) && (!this.type.lockOnToLivings || !(entity instanceof EntityLivingBase)));
-
-                Vector3f relPosVec = new Vector3f(entity.posX - this.posX, entity.posY - this.posY, entity.posZ - this.posZ);
-                float angle = Math.abs(Vector3f.angle(motionVec, relPosVec));
-                if (angle < closestAngle) {
-                    closestEntity = entity;
-                    closestAngle = angle;
-                }
-            }
-        }
-    }
-
-    public void setVelocity(double d, double d1, double d2) {
-    }
-
-    public float getDistanceToEntity(Entity p_70032_1_) {
-        float f = (float) (this.posX - p_70032_1_.posX);
-        float f1 = (float) (this.posY - p_70032_1_.posY);
-        float f2 = (float) (this.posZ - p_70032_1_.posZ);
+    public float getDistanceToEntity(Entity entity) {
+        float f = (float) (this.posX - entity.posX);
+        float f1 = (float) (this.posY - entity.posY);
+        float f2 = (float) (this.posZ - entity.posZ);
         return MathHelper.sqrt_float(f * f + f1 * f1 + f2 * f2);
     }
 
     public void onUpdate() {
-        ++ticksExisted;
-        ++ticksInAir;
-        if (type == null || ticksInAir > type.fuse && type.fuse > 0 && !isDead) setDead();
+        //Check the fuse to see if the bullet should explode
+        ticksInAir++;
+        if (ticksInAir > type.fuse && type.fuse > 0 && !isDead) {
+            setDead();
+        }
 
-        if (ticksExisted > bulletLife) setDead();
+        if (ticksExisted > bulletLife) {
+            setDead();
+        }
 
-        if (isDead) return;
+        //Iterate over all EntityDriveables
+        for (int i = 0; i < worldObj.loadedEntityList.size(); i++) {
+            Object obj = worldObj.loadedEntityList.get(i);
+            if (obj instanceof EntityDriveable) {
+                EntityDriveable driveable = (EntityDriveable) obj;
 
-        ArrayList<BulletHit> hits = new ArrayList<>();
-        Vector3f lastPos = new Vector3f(posX, posY, posZ);
-        Vector3f nextPos = new Vector3f(posX + motionX, posY + motionY, posZ + motionZ);
-        Vector3f motion = new Vector3f(motionX, motionY, motionZ);
-        float speed = motion.length();
+                if (driveable.isPartOfThis(owner))
+                    continue;
 
-        double time = Math.max(Math.abs(motionX), Math.max(Math.abs(motionY), Math.abs(motionZ))) / Math.min(width, height);
-        double unitX = motionX / time;
-        double unitY = motionY / time;
-        double unitZ = motionZ / time;
-
-        float hitLambda;
-        int snapshotToTry;
-        for (int i = 0; i < this.worldObj.loadedEntityList.size(); ++i) {
-            Entity entity = (Entity) worldObj.loadedEntityList.get(i);
-            if (entity instanceof EntityDriveable) {
-                EntityDriveable driveable = (EntityDriveable) entity;
-                if (driveable.isDead() || driveable.isPartOfThis(owner)) continue;
-                if (getDistanceToEntity(driveable) <= driveable.getDriveableType().bulletDetectionRadius + speed) {
-                    ArrayList<BulletHit> driveableHits = driveable.attackFromBullet(lastPos, motion);
-                    hits.addAll(driveableHits);
-                }
-            } else if ((entity instanceof EntityLivingBase || entity instanceof EntityAAGun || entity instanceof EntityGrenade) && entity != owner && !entity.isDead) {
-                double cX = (entity.boundingBox.minX + entity.boundingBox.maxX) / 2;
-                double cY = (entity.boundingBox.minY + entity.boundingBox.maxY) / 2;
-                double cZ = (entity.boundingBox.minZ + entity.boundingBox.maxZ) / 2;
-                double distance = lastPos.toVec3().distanceTo(Vec3.createVectorHelper(cX, cY, cZ));
-                for (int j = 0; j <= time; j++) {
-                    if (boundingBox.getOffsetBoundingBox(j * unitX, j * unitY, j * unitZ).intersectsWith(entity.boundingBox)) {
-                        hits.add(new EntityHit(entity, (float) distance / speed));
-                        break;
+                //If this bullet is within the driveable's detection range
+                if (getDistanceToEntity(driveable) <= driveable.getDriveableType().bulletDetectionRadius) {
+                    //Raytrace the bullet and if it hits, kill the bullet
+                    if (driveable.attackFromBullet(this, new Vector3f((float) posX, (float) posY, (float) posZ), new Vector3f((float) motionX, (float) motionY, (float) motionZ))) {
+                        if (!type.penetratesEntities)
+                            setDead();
                     }
                 }
             }
         }
 
-        // rayTraceBlocks
-        MovingObjectPosition hit = worldObj.func_147447_a(lastPos.toVec3(), nextPos.toVec3(), false, true, true);
-        if (hit != null) {
-            double distance = lastPos.toVec3().distanceTo(hit.hitVec);
-            hits.add(new BlockHit(hit, (float) (distance / speed)));
+        //Ray trace the bullet by comparing its next position to its current position
+        Vec3 posVec = Vec3.createVectorHelper(posX, posY, posZ);
+        Vec3 nextPosVec = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
+        MovingObjectPosition hit = worldObj.rayTraceBlocks_do_do(posVec, nextPosVec, false, true);
+
+        //Reset the position vectors since the ray tracer messes them up
+        posVec = Vec3.createVectorHelper(posX, posY, posZ);
+        nextPosVec = Vec3.createVectorHelper(posX + motionX, posY + motionY, posZ + motionZ);
+
+        //If there is something in the way of the bullet's motion, put the bullet at that position next tick
+        if (hit != null && !(hit.entityHit == null ? type.penetratesBlocks : type.penetratesEntities)) {
+            nextPosVec = Vec3.createVectorHelper(hit.hitVec.xCoord, hit.hitVec.yCoord, hit.hitVec.zCoord);
         }
-
-        if (!hits.isEmpty()) {
-            //Sort the hits according to the intercept position
-            Collections.sort(hits);
-
-            for (BulletHit bulletHit : hits) {
-                if (bulletHit instanceof PlayerBulletHit) {
-                    PlayerBulletHit playerHit = (PlayerBulletHit) bulletHit;
-                    penetratingPower = playerHit.hitbox.hitByBullet(this, penetratingPower);
-                    if (FlansMod.DEBUG)
-                        worldObj.spawnEntityInWorld(new EntityDebugDot(worldObj, new Vector3f(posX + motionX * playerHit.intersectTime, posY + motionY * playerHit.intersectTime, posZ + motionZ * playerHit.intersectTime), 1000, 1F, 0F, 0F));
-                } else if (bulletHit instanceof EntityHit) {
-                    EntityHit entityHit = (EntityHit) bulletHit;
-                    if (entityHit.entity.attackEntityFrom(getBulletDamage(false), damage * type.damageVsLiving) && entityHit.entity instanceof EntityLivingBase) {
-                        EntityLivingBase living = (EntityLivingBase) entityHit.entity;
-                        for (PotionEffect effect : type.hitEffects) {
-                            living.addPotionEffect(new PotionEffect(effect));
-                        }
-                        //If the attack was allowed, we should remove their immortality cooldown so we can shoot them again. Without this, any rapid fire gun become useless
-                        living.arrowHitTimer++;
-                        living.hurtResistantTime = living.maxHurtResistantTime / 2;
+        //If we hit something
+        if (!isDead && hit != null) {
+            //If the bullet should explode on impact and the hit is not the shooter, explode!
+            if (type.explodeOnImpact && ticksInAir > 5 && (hit.entityHit == null || !isPartOfOwner(hit.entityHit)))
+                setDead();
+            else {
+                //If the hit wasn't an entity hit, then it must've been a block hit
+                if (hit.entityHit == null) {
+                    int xTile = hit.blockX;
+                    int yTile = hit.blockY;
+                    int zTile = hit.blockZ;
+                    int blockID = worldObj.getBlockId(xTile, yTile, zTile);
+                    Material mat = worldObj.getBlockMaterial(xTile, yTile, zTile);
+                    //If the bullet breaks glass, and can do so according to FlansMod, do so.
+                    if (type.breaksGlass && mat == Material.glass) {
+                        if (FlansMod.canBreakGlass)
+                            worldObj.setBlockToAir(xTile, yTile, zTile);
+                        FlansMod.proxy.playBlockBreakSound(xTile, yTile, zTile, blockID);
                     }
-                    if (type.setEntitiesOnFire)
-                        entityHit.entity.setFire(20);
-                    penetratingPower -= 1F;
-                    if (FlansMod.DEBUG)
-                        worldObj.spawnEntityInWorld(new EntityDebugDot(worldObj, new Vector3f(posX + motionX * entityHit.intersectTime, posY + motionY * entityHit.intersectTime, posZ + motionZ * entityHit.intersectTime), 1000, 1F, 1F, 0F));
-                } else if (bulletHit instanceof BlockHit) {
-                    BlockHit blockHit = (BlockHit) bulletHit;
-                    MovingObjectPosition raytraceResult = blockHit.raytraceResult;
-                    //If the hit wasn't an entity hit, then it must've been a block hit
-                    int xTile = raytraceResult.blockX;
-                    int yTile = raytraceResult.blockY;
-                    int zTile = raytraceResult.blockZ;
-                    if (FlansMod.DEBUG)
-                        worldObj.spawnEntityInWorld(new EntityDebugDot(worldObj, new Vector3f(raytraceResult.hitVec.xCoord, raytraceResult.hitVec.yCoord, raytraceResult.hitVec.zCoord), 1000, 0F, 1F, 0F));
-
-                    Block block = worldObj.getBlock(xTile, yTile, zTile);
-                    if (block == Blocks.fence || block == Blocks.fence_gate || block == Blocks.nether_brick_fence) continue;
-
-                    Material mat = block.getMaterial();
-                    if (mat == Material.air || mat == Material.glass || mat == Material.grass || mat == Material.leaves) continue;
-
-                    int oreId = OreDictionary.getOreID(new ItemStack(block));
-                    if (oreId != -1) if (OreDictionary.getOreName(oreId).equals("treeLeaves")) continue;
-
-                    //penetratingPower -= block.getBlockHardness(worldObj, zTile, zTile, zTile);
-                    if (hit != null) setPosition(hit.hitVec.xCoord, hit.hitVec.yCoord, hit.hitVec.zCoord);
-                    setDead();
-                    break;
+                    if (!type.penetratesBlocks) {
+                        setPosition(hit.hitVec.xCoord, hit.hitVec.yCoord, hit.hitVec.zCoord);
+                        setDead();
+                    }
                 }
-                if (penetratingPower <= 0F || (type.explodeOnImpact && ticksInAir > 1)) {
-                    setPosition(posX + motionX * bulletHit.intersectTime, posY + motionY * bulletHit.intersectTime, posZ + motionZ * bulletHit.intersectTime);
+            }
+        }
+        //If the bullet was not stopped by a block
+        if (!isDead) {
+            //Iterate over entities close to the bullet to see if any of them have been hit and hit them
+            List list = worldObj.getEntitiesWithinAABB(Entity.class, boundingBox.addCoord(motionX, motionY, motionZ).expand(type.hitBoxSize, type.hitBoxSize, type.hitBoxSize));
+            for (Object o : list) {
+                Entity checkEntity = (Entity) o;
+                //Driveable collisions are handled earlier
+                if (checkEntity instanceof EntityDriveable)
+                    continue;
+
+                if (checkEntity instanceof EntityPlayer) {
+                    FlansModPlayerData data = FlansModPlayerHandler.getPlayerData((EntityPlayer) checkEntity, worldObj.isRemote ? Side.CLIENT : Side.SERVER);
+                    if (checkEntity != owner && data != null && data.team == Team.spectators)
+                        continue;
+                }
+
+                //Stop the bullet hitting stuff that can't be collided with or the person shooting immediately after firing it
+                if ((!checkEntity.canBeCollidedWith() || isPartOfOwner(checkEntity)) && ticksInAir < 20) {
+                    continue;
+                }
+                //Calculate the hit damage
+                float hitDamage = damage * type.damageVsLiving;
+                //Create a damage source object
+                DamageSource damagesource = owner == null ? DamageSource.generic : getBulletDamage();
+
+                //When the damage is 0 (such as with Nerf guns) the entityHurt Forge hook is not called, so this hacky thing is here
+                if (hitDamage == 0 && checkEntity instanceof EntityPlayerMP && TeamsManager.getInstance().currentGametype != null)
+                    TeamsManager.getInstance().currentGametype.playerAttacked((EntityPlayerMP) checkEntity, damagesource);
+
+                //Attack the entity!
+                if (checkEntity.attackEntityFrom(damagesource, hitDamage)) {
+                    //If the attack was allowed and the entity is alive, we should remove their immortality cooldown so we can shoot them again. Without this, any rapid fire gun become useless
+                    if (checkEntity instanceof EntityLivingBase) {
+                        ((EntityLivingBase) checkEntity).arrowHitTimer++;
+                        ((EntityLivingBase) checkEntity).hurtResistantTime = ((EntityLivingBase) checkEntity).maxHurtResistantTime / 2;
+                    }
+                    //Yuck.
+                    //PacketDispatcher.sendPacketToAllAround(posX, posY, posZ, 50, dimension, PacketPlaySound.buildSoundPacket(posX, posY, posZ, type.hitSound, true));
+                }
+                //Unless the bullet penetrates, kill it
+                if (!type.penetratesEntities) {
+                    setPosition(checkEntity.posX, checkEntity.posY, checkEntity.posZ);
                     setDead();
                     break;
                 }
             }
         }
 
+        //Apply motion
+        posX += motionX;
+        posY += motionY;
+        posZ += motionZ;
+
+        //Recalculate the angles from the new motion
+        float motionXZ = MathHelper.sqrt_double(motionX * motionX + motionZ * motionZ);
+        rotationYaw = (float) ((Math.atan2(motionX, motionZ) * 180D) / 3.1415927410125732D);
+        rotationPitch = (float) ((Math.atan2(motionY, motionXZ) * 180D) / 3.1415927410125732D);
+        //Reset the range of the angles
+        for (; rotationPitch - prevRotationPitch < -180F; prevRotationPitch -= 360F) {
+        }
+        for (; rotationPitch - prevRotationPitch >= 180F; prevRotationPitch += 360F) {
+        }
+        for (; rotationYaw - prevRotationYaw < -180F; prevRotationYaw -= 360F) {
+        }
+        for (; rotationYaw - prevRotationYaw >= 180F; prevRotationYaw += 360F) {
+        }
+        rotationPitch = prevRotationPitch + (rotationPitch - prevRotationPitch) * 0.2F;
+        rotationYaw = prevRotationYaw + (rotationYaw - prevRotationYaw) * 0.2F;
+
+        //Movement dampening variables
         float drag = 0.99F;
         float gravity = 0.02F;
-        if (isInWater()) {
-            for (snapshotToTry = 0; snapshotToTry < 4; ++snapshotToTry) {
-                float bubbleMotion = 0.25F;
-                this.worldObj.spawnParticle("bubble", this.posX - this.motionX * (double) bubbleMotion, this.posY - this.motionY * (double) bubbleMotion, this.posZ - this.motionZ * (double) bubbleMotion, this.motionX, this.motionY, this.motionZ);
-            }
-
-            drag = 0.8F;
-        }
 
         motionX *= drag;
         motionY *= drag;
         motionZ *= drag;
         motionY -= gravity * type.fallSpeed;
-        if (lockedOnTo != null) {
-            double dX = lockedOnTo.posX - posX;
-            double dY = lockedOnTo.posY - posY;
-            double dZ = lockedOnTo.posZ - posZ;
-            double dXYZ = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
-            Vector3f relPosVec = new Vector3f(lockedOnTo.posX - posX, lockedOnTo.posY - posY, lockedOnTo.posZ - posZ);
-            float angle = Math.abs(Vector3f.angle(motion, relPosVec));
-            double lockOnPull = (double) (angle / 2.0F * this.type.lockOnForce);
-            this.motionX += lockOnPull * dX / dXYZ;
-            this.motionY += lockOnPull * dY / dXYZ;
-            this.motionZ += lockOnPull * dZ / dXYZ;
-        }
+        setPosition(posX, posY, posZ);
 
-        this.posX += this.motionX;
-        this.posY += this.motionY;
-        this.posZ += this.motionZ;
-        this.setPosition(this.posX, this.posY, this.posZ);
-        hitLambda = MathHelper.sqrt_double(this.motionX * this.motionX + this.motionZ * this.motionZ);
-        this.rotationYaw = (float) (Math.atan2(this.motionX, this.motionZ) * 180.0D / 3.1415927410125732D);
-
-        for (this.rotationPitch = (float) (Math.atan2(this.motionY, (double) hitLambda) * 180.0D / 3.1415927410125732D); this.rotationPitch - this.prevRotationPitch < -180.0F; this.prevRotationPitch -= 360.0F) {
-        }
-
-        while (this.rotationPitch - this.prevRotationPitch >= 180.0F) {
-            this.prevRotationPitch += 360.0F;
-        }
-
-        while (this.rotationYaw - this.prevRotationYaw < -180.0F) {
-            this.prevRotationYaw -= 360.0F;
-        }
-
-        while (this.rotationYaw - this.prevRotationYaw >= 180.0F) {
-            this.prevRotationYaw += 360.0F;
-        }
-
-        this.rotationPitch = this.prevRotationPitch + (this.rotationPitch - this.prevRotationPitch) * 0.2F;
-        this.rotationYaw = this.prevRotationYaw + (this.rotationYaw - this.prevRotationYaw) * 0.2F;
-        if (this.type.trailParticles && this.worldObj.isRemote && this.ticksInAir > 1) {
-            this.spawnParticles();
-        }
-
-        if (this.worldObj.isRemote) {
-            this.extinguish();
-        }
-    }
-
-    public void extinguish() {
-        this.fire = 0;
-    }
-
-    public void setPosition(double p_70107_1_, double p_70107_3_, double p_70107_5_) {
-        this.posX = p_70107_1_;
-        this.posY = p_70107_3_;
-        this.posZ = p_70107_5_;
-        float f = this.width / 2.0F;
-        float f1 = this.height;
-        this.boundingBox.setBounds(p_70107_1_ - (double) f, p_70107_3_ - (double) this.yOffset + (double) this.ySize, p_70107_5_ - (double) f, p_70107_1_ + (double) f, p_70107_3_ - (double) this.yOffset + (double) this.ySize + (double) f1, p_70107_5_ + (double) f);
-    }
-
-    public boolean isInWater() {
-        return false;
-    }
-
-    @SideOnly(Side.CLIENT)
-    private void spawnParticles() {
-        double dX = (this.posX - this.prevPosX) / 10.0D;
-        double dY = (this.posY - this.prevPosY) / 10.0D;
-        double dZ = (this.posZ - this.prevPosZ) / 10.0D;
-        float spread = 0.1F;
-
-        for (int i = 0; i < 10; ++i) {
-            EntityFX particle = FlansModClient.getParticle(this.type.trailParticleType, this.worldObj, this.prevPosX + dX * (double) i + this.rand.nextGaussian() * (double) spread, this.prevPosY + dY * (double) i + this.rand.nextGaussian() * (double) spread, this.prevPosZ + dZ * (double) i + this.rand.nextGaussian() * (double) spread);
-            if (particle != null && Minecraft.getMinecraft().gameSettings.fancyGraphics) {
-                particle.renderDistanceWeight = 100.0D;
+        //Particles
+        if (type.smokeTrail) {
+            double dX = (posX - prevPosX) / 10;
+            double dY = (posY - prevPosY) / 10;
+            double dZ = (posZ - prevPosZ) / 10;
+            for (int i = 0; i < 10; i++) {
+                worldObj.spawnParticle(type.trailParticles, prevPosX + dX * i, prevPosY + dY * i, prevPosZ + dZ * i, 0, 0, 0);
             }
         }
     }
 
-    public DamageSource getBulletDamage(boolean headshot) {
-        return this.owner instanceof EntityPlayer ? (new EntityDamageSourceGun(this.type.shortName, this.owner, (EntityPlayer) this.owner, this.firedFrom, headshot)).setProjectile() : (new EntityDamageSourceIndirect(this.type.shortName, this.owner, this.owner)).setProjectile();
+    private DamageSource getBulletDamage() {
+        if (owner instanceof EntityPlayer) return (new EntityDamageSourceGun(type.shortName, this.owner, (EntityPlayer) owner, firedFrom)).setProjectile();
+        else return (new EntityDamageSourceIndirect(type.shortName, this.owner, owner)).setProjectile();
     }
 
     private boolean isPartOfOwner(Entity entity) {
-        if (this.owner == null) {
+        if (owner == null)
             return false;
-        } else if (entity != this.owner && entity != this.owner.riddenByEntity && entity != this.owner.ridingEntity) {
-            if (this.owner instanceof EntityPlayer) {
-                if (PlayerHandler.getPlayerData((EntityPlayer) this.owner, this.worldObj.isRemote ? Side.CLIENT : Side.SERVER) == null) {
-                    return false;
-                }
-
-                EntityMG mg = PlayerHandler.getPlayerData((EntityPlayer) this.owner, this.worldObj.isRemote ? Side.CLIENT : Side.SERVER).mountingGun;
-                if (mg != null && mg == entity) {
-                    return true;
-                }
-            }
-
-            return this.owner.ridingEntity instanceof EntitySeat && (((EntitySeat) this.owner.ridingEntity).driveable == null || ((EntitySeat) this.owner.ridingEntity).driveable.isPartOfThis(entity));
-        } else {
+        if (entity == owner || entity == owner.riddenByEntity || entity == owner.ridingEntity)
             return true;
+        if (owner instanceof EntityPlayer) {
+            if (FlansModPlayerHandler.getPlayerData((EntityPlayer) owner, worldObj.isRemote ? Side.CLIENT : Side.SERVER) == null)
+                return false;
+            EntityMG mg = FlansModPlayerHandler.getPlayerData((EntityPlayer) owner, worldObj.isRemote ? Side.CLIENT : Side.SERVER).mountingGun;
+            if (mg != null && mg == entity) {
+                return true;
+            }
         }
+        if (owner.ridingEntity instanceof EntitySeat) {
+            return ((EntitySeat) owner.ridingEntity).driveable == null || ((EntitySeat) owner.ridingEntity).driveable.isPartOfThis(entity);
+        }
+        return false;
     }
 
     public void setDead() {
-        if (!this.isDead) {
-            if (!this.worldObj.isRemote) {
-                String itemName;
-                if (this.type.explosionRadius > 0.0F) {
-                    itemName = this.worldObj.getWorldInfo().getWorldName();
-                    if (this.owner instanceof EntityPlayer) {
-                        new FlansModExplosion(this.worldObj, this, (EntityPlayer) this.owner, this.firedFrom, this.posX, this.posY, this.posZ, this.type.explosionRadius, TeamsManager.explosions);
-                    } else {
-                        this.worldObj.createExplosion((Entity) null, this.posX, this.posY, this.posZ, this.type.explosionRadius, TeamsManager.explosions);
-                    }
-                }
-
-                if (this.type.fireRadius > 0.0F) {
-                    for (float i = -this.type.fireRadius; i < this.type.fireRadius; ++i) {
-                        for (float k = -this.type.fireRadius; k < this.type.fireRadius; ++k) {
-                            for (int j = -1; j < 1; ++j) {
-                                if (this.worldObj.getBlock((int) (this.posX + (double) i), (int) (this.posY + (double) j), (int) (this.posZ + (double) k)).getMaterial() == Material.air) {
-                                    this.worldObj.setBlock((int) (this.posX + (double) i), (int) (this.posY + (double) j), (int) (this.posZ + (double) k), Blocks.fire);
-                                }
-                            }
+        if (isDead) return;
+        if (worldObj.isRemote)
+            return;
+        if (type.explosion > 0) {
+            if (owner instanceof EntityPlayer) {
+                new FlansModExplosion(worldObj, this, (EntityPlayer) owner, firedFrom, posX, posY, posZ, type.explosion, FlansMod.explosions);
+            } else worldObj.createExplosion(null, posX, posY, posZ, type.explosion, FlansMod.explosions);
+        }
+        if (type.fire > 0) {
+            for (int i = (int) posX - type.fire; i < (int) posX + type.fire; i++) {
+                for (int k = (int) posZ - type.fire; k < (int) posZ + type.fire; k++) {
+                    for (int j = (int) posY - 1; j < (int) posY + 1; j++) {
+                        if (worldObj.getBlockMaterial(i, j, k) == Material.air) {
+                            worldObj.setBlock(i, j, k, Block.fire.blockID, 0, 3);
                         }
                     }
                 }
-
-                if (this.type.flak > 0) {
-                    FlansMod.getPacketHandler().sendToAllAround(new PacketFlak(this.posX, this.posY, this.posZ, this.type.flak, this.type.flakParticles), this.posX, this.posY, this.posZ, 200.0F, this.dimension);
-                }
-
-                if (this.type.dropItemOnHit != null) {
-                    itemName = this.type.dropItemOnHit;
-                    int damage = 0;
-                    if (itemName.contains(".")) {
-                        damage = Integer.parseInt(itemName.split("\\.")[1]);
-                        itemName = itemName.split("\\.")[0];
-                    }
-
-                    ItemStack dropStack = InfoType.getRecipeElement(itemName, damage);
-                    this.entityDropItem(dropStack, 1.0F);
-                }
-
-                this.manager.remove();
             }
         }
-    }
-
-    public EntityItem entityDropItem(ItemStack p_70099_1_, float p_70099_2_) {
-        if (p_70099_1_.stackSize != 0 && p_70099_1_.getItem() != null) {
-            EntityItem entityitem = new EntityItem(this.worldObj, this.posX, this.posY + (double) p_70099_2_, this.posZ, p_70099_1_);
-            entityitem.delayBeforeCanPickup = 10;
-            if (this.captureDrops) {
-                this.capturedDrops.add(entityitem);
-            } else {
-                this.worldObj.spawnEntityInWorld(entityitem);
+        //Send flak packet
+        if (type.flak > 0)
+            PacketDispatcher.sendPacketToAllAround(posX, posY, posZ, 200, dimension, PacketFlak.buildFlakPacket(posX, posY, posZ, type.flak, type.flakParticles));
+        // Drop item on hitting if bullet requires it
+        /*if (type.dropItemOnHit != null) {
+            String itemName = type.dropItemOnHit;
+            int damage = 0;
+            if (itemName.contains(".")) {
+                damage = Integer.parseInt(itemName.split("\\.")[1]);
+                itemName = itemName.split("\\.")[0];
             }
-
-            return entityitem;
-        } else {
-            return null;
-        }
+            ItemStack dropStack = InfoType.getRecipeElement(itemName, damage);
+            entityDropItem(dropStack, 1.0F);
+        }*/
     }
 
-    public void writeEntityToNBT(NBTTagCompound tag) {
-        tag.setString("type", this.type.shortName);
-        if (this.owner == null) {
-            tag.setString("owner", "null");
-        } else {
-            tag.setString("owner", this.owner.getCommandSenderName());
-        }
+    @Override
+    public void writeSpawnData(ByteArrayDataOutput data) {
+        // TODO Auto-generated method stub
+        data.writeUTF(type.shortName);
 
+        if (owner == null)
+            data.writeUTF("null");
+        else
+            data.writeUTF(owner.getEntityName());
     }
 
-    public void readEntityFromNBT(NBTTagCompound tag) {
-        String typeString = tag.getString("type");
-        String ownerName = tag.getString("owner");
-        if (typeString != null) {
-            this.type = BulletType.getBullet(typeString);
-        }
-
-        if (ownerName != null && !ownerName.equals("null")) {
-            this.owner = FMLCommonHandler.instance().getMinecraftServerInstance().getConfigurationManager().func_152612_a(ownerName);
-        }
-
-    }
-
-    public float getShadowSize() {
-        return this.type.hitBoxSize;
-    }
-
-    public int getBrightnessForRender(float par1) {
-        if (this.type.hasLight) {
-            return 15728880;
-        } else {
-            int i = MathHelper.floor_double(this.posX);
-            int j = MathHelper.floor_double(this.posZ);
-            if (this.worldObj.blockExists(i, 0, j)) {
-                double d0 = (this.boundingBox.maxY - this.boundingBox.minY) * 0.66D;
-                int k = MathHelper.floor_double(this.posY - (double) this.yOffset + d0);
-                return this.worldObj.getLightBrightnessForSkyBlocks(i, k, j, 0);
-            } else {
-                return 0;
-            }
-        }
-    }
-
-    public void writeSpawnData(ByteBuf data) {
-        data.writeDouble(this.motionX);
-        data.writeDouble(this.motionY);
-        data.writeDouble(this.motionZ);
-        data.writeInt(this.lockedOnTo == null ? -1 : this.lockedOnTo.getEntityId());
-        ByteBufUtils.writeUTF8String(data, this.type.shortName);
-        if (this.owner == null) {
-            ByteBufUtils.writeUTF8String(data, "null");
-        } else {
-            ByteBufUtils.writeUTF8String(data, this.owner.getCommandSenderName());
-        }
-
-    }
-
-    public void readSpawnData(ByteBuf data) {
+    @Override
+    public void readSpawnData(ByteArrayDataInput data) {
+        // TODO Auto-generated method stub
         try {
-            this.motionX = data.readDouble();
-            this.motionY = data.readDouble();
-            this.motionZ = data.readDouble();
-            int lockedOnToID = data.readInt();
-            if (lockedOnToID != -1) {
-                this.lockedOnTo = this.worldObj.getEntityByID(lockedOnToID);
+            type = BulletType.getBullet(data.readUTF());
+            String name = data.readUTF();
+            for (Object obj : worldObj.playerEntities) {
+                if (((EntityPlayer) obj).username.equals(name))
+                    owner = (EntityPlayer) obj;
             }
-
-            this.type = BulletType.getBullet(ByteBufUtils.readUTF8String(data));
-            this.penetratingPower = this.type.penetratingPower;
-            String name = ByteBufUtils.readUTF8String(data);
-            Iterator i$ = this.worldObj.loadedEntityList.iterator();
-
-            while (i$.hasNext()) {
-                Object obj = i$.next();
-                if (((Entity) obj).getCommandSenderName().equals(name)) {
-                    this.owner = (EntityPlayer) obj;
-                }
-            }
-        } catch (Exception var6) {
+        } catch (Exception e) {
             FlansMod.log("Failed to read bullet owner from server.");
-            this.setDead();
-            var6.printStackTrace();
+            e.printStackTrace();
         }
-
-    }
-
-    public boolean isBurning() {
-        return false;
     }
 }

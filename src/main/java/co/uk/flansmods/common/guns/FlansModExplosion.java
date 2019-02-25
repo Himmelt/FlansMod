@@ -53,6 +53,28 @@ public class FlansModExplosion extends Explosion {
         }
     }
 
+    public FlansModExplosion(World w, RunningBullet e, EntityPlayer p, InfoType t, double x, double y, double z, float r, boolean breakBlocks) {
+        super(w, p, x, y, z, r);
+        worldObj = w;
+        type = t;
+        player = p;
+        isFlaming = false;
+        isSmoking = breakBlocks;
+        doExplosionA();
+        doExplosionB(true);
+
+        if (!worldObj.isRemote) {
+            if (!breakBlocks)
+                affectedBlockPositions.clear();
+
+            for (Object o : worldObj.playerEntities) {
+                EntityPlayer entityplayer = (EntityPlayer) o;
+                if (entityplayer.getDistanceSq(x, y, z) < 4096.0D)
+                    ((EntityPlayerMP) entityplayer).playerNetServerHandler.sendPacketToPlayer(new Packet60Explosion(x, y, z, r, affectedBlockPositions, (Vec3) func_77277_b().get(entityplayer)));
+            }
+        }
+    }
+
     @Override
     public void doExplosionA() {
         float f = explosionSize;
