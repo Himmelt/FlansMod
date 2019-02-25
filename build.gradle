@@ -6,10 +6,6 @@ buildscript {
             name = 'aliyun'
             url = 'https://maven.aliyun.com/repository/public'
         }
-        //maven {
-        //   name = 'lss233'
-        //   url = 'https://www.lss233.com/artifactory/minecraft'
-        //}
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"

@@ -143,7 +143,7 @@ public class FlansMod {
 
     static {
         try {
-            Display.setTitle("死城求生");
+            Display.setTitle("血刃战争");
         } catch (Throwable ignored) {
         }
     }
