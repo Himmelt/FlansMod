@@ -138,6 +138,7 @@ task('proguard', type: ProGuardTask) {
     }'
     keep 'class com.flansmod.common.FlansMod'
     keep 'class com.flansmod.server.ServerProxy'
+    keep 'class com.flansmod.client.CommonProxy'
     keep 'class com.flansmod.client.ClientProxy'
     keep 'class com.flansmod.client.gui.config.ModGuiFactory'
 }

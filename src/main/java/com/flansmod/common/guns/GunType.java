@@ -693,7 +693,7 @@ public class GunType extends InfoType implements IScope {
                     String line = list.getStringTagAt(i);
                     if (line != null && !line.isEmpty()) {
                         line = COLOR_PATTERN.matcher(line).replaceAll("");
-                        if (line.contains("Damage")) {
+                        if (line.contains("子弹伤害")) {
                             Matcher matcher = NUMBER_PATTERN.matcher(line);
                             stackDamage += Double.parseDouble(matcher.group());
                             break;
