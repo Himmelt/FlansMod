@@ -3,12 +3,14 @@ package com.flansmod.common.guns;
 import com.flansmod.client.model.ModelGun;
 import com.flansmod.client.model.ModelMG;
 import com.flansmod.common.FlansMod;
+import com.flansmod.common.eventhandlers.FMLEventHandler;
 import com.flansmod.common.types.InfoType;
 import com.flansmod.common.types.TypeFile;
 import com.flansmod.common.vector.Vector3f;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemDye;
 import net.minecraft.item.ItemStack;
@@ -674,17 +676,14 @@ public class GunType extends InfoType implements IScope {
     }
 
     private static final Pattern COLOR_PATTERN = Pattern.compile("(?i)\\u00A7[0-9A-FK-OR]");
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("[+-]?\\d+(\\.\\d+)?");
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("[+-]?\\d+(\\.\\d+)?%");
+    private static final Pattern PURE_NUMBER_PATTERN = Pattern.compile("[+-]?\\d+(\\.\\d+)?");
 
-    /**
-     * Get the damage of a specific gun, taking into account attachments
-     */
     public float getDamage(ItemStack stack) {
         float stackDamage = damage;
         for (AttachmentType attachment : getCurrentAttachments(stack)) {
             stackDamage *= attachment.damageMultiplier;
         }
-
         if (stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
             NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
             if (display.hasKey("Lore", 9)) {
@@ -693,8 +692,8 @@ public class GunType extends InfoType implements IScope {
                     String line = list.getStringTagAt(i);
                     if (line != null && !line.isEmpty()) {
                         line = COLOR_PATTERN.matcher(line).replaceAll("");
-                        if (line.contains("子弹伤害")) {
-                            Matcher matcher = NUMBER_PATTERN.matcher(line);
+                        if (line.contains(FlansMod.damageMark)) {
+                            Matcher matcher = PURE_NUMBER_PATTERN.matcher(line);
                             stackDamage += Double.parseDouble(matcher.group());
                             break;
                         }
@@ -702,57 +701,205 @@ public class GunType extends InfoType implements IScope {
                 }
             }
         }
-
         return stackDamage;
     }
 
-    /**
-     * Get the bullet spread of a specific gun, taking into account attachments
-     */
-    public float getSpread(ItemStack stack) {
-        float stackSpread = bulletSpread;
-        for (AttachmentType attachment : getCurrentAttachments(stack)) {
-            stackSpread *= attachment.spreadMultiplier;
-        }
-        return stackSpread;
+    public float getRecoil(ItemStack stack) {
+        return getRecoil(stack, null);
     }
 
-    /**
-     * Get the recoil of a specific gun, taking into account attachments
-     */
-    public float getRecoil(ItemStack stack) {
+    public float getRecoil(ItemStack stack, EntityPlayer player) {
         float stackRecoil = recoil;
         for (AttachmentType attachment : getCurrentAttachments(stack)) {
             stackRecoil *= attachment.recoilMultiplier;
         }
-        return stackRecoil;
-    }
-
-    /**
-     * Get the bullet speed of a specific gun, taking into account attachments
-     */
-    public float getBulletSpeed(ItemStack stack) {
-        float stackBulletSpeed = bulletSpeed;
-        for (AttachmentType attachment : getCurrentAttachments(stack)) {
-            stackBulletSpeed *= attachment.bulletSpeedMultiplier;
+        if (player != null && stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
+            NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
+            if (display.hasKey("Lore", 9)) {
+                NBTTagList list = display.getTagList("Lore", 8);
+                boolean sneaking = FMLEventHandler.isSneaking(player.getUniqueID());
+                boolean sprinting = player.isSprinting();
+                for (int i = 0; i < list.tagCount(); i++) {
+                    String line = list.getStringTagAt(i);
+                    if (line != null && !line.isEmpty()) {
+                        line = COLOR_PATTERN.matcher(line).replaceAll("");
+                        if (line.contains(FlansMod.recoilMark)) {
+                            Matcher matcher = NUMBER_PATTERN.matcher(line);
+                            if (line.contains(FlansMod.sneakingMark)) {
+                                if (sneaking && matcher.find()) {
+                                    stackRecoil *= 1.0F + Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (line.contains(FlansMod.sprintingMark)) {
+                                if (sprinting && matcher.find()) {
+                                    stackRecoil *= 1.0F + Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (matcher.find()) {
+                                stackRecoil *= 1.0F + Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
-        return stackBulletSpeed;
+        return stackRecoil < 0 ? 0 : stackRecoil;
     }
 
-    /**
-     * Get the reload time of a specific gun, taking into account attachments
-     */
+    public float getSpread(ItemStack stack) {
+        return getSpread(stack, null);
+    }
+
+    public float getSpread(ItemStack stack, EntityPlayer player) {
+        float stackSpread = bulletSpread;
+        for (AttachmentType attachment : getCurrentAttachments(stack)) {
+            stackSpread *= attachment.spreadMultiplier;
+        }
+        double percent = 0;
+        if (player != null && stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
+            NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
+            if (display.hasKey("Lore", 9)) {
+                NBTTagList list = display.getTagList("Lore", 8);
+                boolean sneaking = FMLEventHandler.isSneaking(player.getUniqueID());
+                boolean sprinting = player.isSprinting();
+                for (int i = 0; i < list.tagCount(); i++) {
+                    String line = list.getStringTagAt(i);
+                    if (line != null && !line.isEmpty()) {
+                        line = COLOR_PATTERN.matcher(line).replaceAll("");
+                        if (line.contains(FlansMod.accuracyMark)) {
+                            Matcher matcher = NUMBER_PATTERN.matcher(line);
+                            if (line.contains(FlansMod.sneakingMark)) {
+                                if (sneaking && matcher.find()) {
+                                    percent = -Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
+                                    break;
+                                }
+                            } else if (line.contains(FlansMod.sprintingMark)) {
+                                if (sprinting && matcher.find()) {
+                                    percent = -Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
+                                    break;
+                                }
+                            } else if (matcher.find()) {
+                                percent = -Double.parseDouble(matcher.group().replaceAll("%", "")) / 100.0D;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stackSpread = stackSpread < 0 ? 0 : stackSpread > 100 ? 100 : stackSpread;
+        if (percent >= 0) {
+            stackSpread += percent * (100 - stackSpread);
+        } else stackSpread *= 1 + percent;
+        return stackSpread < 0 ? 0 : stackSpread > 100 ? 100 : stackSpread;
+    }
+
+    public float getBulletSpeed(ItemStack stack) {
+        float bulletSpeed = this.bulletSpeed;
+        for (AttachmentType attachment : getCurrentAttachments(stack)) {
+            bulletSpeed *= attachment.bulletSpeedMultiplier;
+        }
+        if (stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
+            NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
+            if (display.hasKey("Lore", 9)) {
+                NBTTagList list = display.getTagList("Lore", 8);
+                for (int i = 0; i < list.tagCount(); i++) {
+                    String line = list.getStringTagAt(i);
+                    if (line != null && !line.isEmpty()) {
+                        line = COLOR_PATTERN.matcher(line).replaceAll("");
+                        if (line.contains(FlansMod.bulletSpeedMark)) {
+                            Matcher matcher = PURE_NUMBER_PATTERN.matcher(line);
+                            bulletSpeed += Double.parseDouble(matcher.group());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return bulletSpeed < 0 ? 0 : bulletSpeed;
+    }
+
+    public int getShootDelay(ItemStack stack, EntityPlayer player) {
+        float stackShootDelay = shootDelay;
+        if (player != null && stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
+            NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
+            if (display.hasKey("Lore", 9)) {
+                NBTTagList list = display.getTagList("Lore", 8);
+                boolean sneaking = FMLEventHandler.isSneaking(player.getUniqueID());
+                boolean sprinting = player.isSprinting();
+                for (int i = 0; i < list.tagCount(); i++) {
+                    String line = list.getStringTagAt(i);
+                    if (line != null && !line.isEmpty()) {
+                        line = COLOR_PATTERN.matcher(line).replaceAll("");
+                        if (line.contains(FlansMod.shootDelayMark)) {
+                            Matcher matcher = NUMBER_PATTERN.matcher(line);
+                            if (line.contains(FlansMod.sneakingMark)) {
+                                if (sneaking && matcher.find()) {
+                                    stackShootDelay *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (line.contains(FlansMod.sprintingMark)) {
+                                if (sprinting && matcher.find()) {
+                                    stackShootDelay *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (matcher.find()) {
+                                stackShootDelay *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return stackShootDelay < 0 ? 0 : Math.round(stackShootDelay);
+    }
+
     public float getReloadTime(ItemStack stack) {
+        return getReloadTime(stack, null);
+    }
+
+    public float getReloadTime(ItemStack stack, EntityPlayer player) {
         float stackReloadTime = reloadTime;
         for (AttachmentType attachment : getCurrentAttachments(stack)) {
             stackReloadTime *= attachment.reloadTimeMultiplier;
         }
-        return stackReloadTime;
+        if (player != null && stack != null && stack.stackTagCompound != null && stack.stackTagCompound.hasKey("display", 10)) {
+            NBTTagCompound display = stack.stackTagCompound.getCompoundTag("display");
+            if (display.hasKey("Lore", 9)) {
+                NBTTagList list = display.getTagList("Lore", 8);
+                boolean sneaking = FMLEventHandler.isSneaking(player.getUniqueID());
+                boolean sprinting = player.isSprinting();
+                for (int i = 0; i < list.tagCount(); i++) {
+                    String line = list.getStringTagAt(i);
+                    if (line != null && !line.isEmpty()) {
+                        line = COLOR_PATTERN.matcher(line).replaceAll("");
+                        if (line.contains(FlansMod.reloadTimeMark)) {
+                            Matcher matcher = NUMBER_PATTERN.matcher(line);
+                            if (line.contains(FlansMod.sneakingMark)) {
+                                if (sneaking && matcher.find()) {
+                                    stackReloadTime *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (line.contains(FlansMod.sprintingMark)) {
+                                if (sprinting && matcher.find()) {
+                                    stackReloadTime *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                    break;
+                                }
+                            } else if (matcher.find()) {
+                                stackReloadTime *= 1.0F - Float.parseFloat(matcher.group().replaceAll("%", "")) / 100.0F;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return stackReloadTime < 0 ? 0 : stackReloadTime;
     }
 
-    /**
-     * Get the firing mode of a specific gun, taking into account attachments
-     */
     public EnumFireMode getFireMode(ItemStack stack) {
         for (AttachmentType attachment : getCurrentAttachments(stack)) {
             if (attachment.modeOverride != null)
@@ -761,9 +908,6 @@ public class GunType extends InfoType implements IScope {
         return mode;
     }
 
-    /**
-     * Static String to GunType method
-     */
     public static GunType getGun(String s) {
         return guns.get(s);
     }

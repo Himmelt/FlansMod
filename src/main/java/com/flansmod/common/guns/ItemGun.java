@@ -380,10 +380,10 @@ public class ItemGun extends Item implements IFlanItem
 				int pumpDelay = gunType.model == null ? 0 : gunType.model.pumpDelay;
 				int pumpTime = gunType.model == null ? 1 : gunType.model.pumpTime;
 				animations.doShoot(pumpDelay, pumpTime);
-				FlansModClient.playerRecoil += gunType.getRecoil(stack);
+				FlansModClient.playerRecoil += gunType.getRecoil(stack,player);
 				if(left)
-					FlansModClient.shootTimeLeft = gunType.shootDelay;
-				else FlansModClient.shootTimeRight = gunType.shootDelay;
+					FlansModClient.shootTimeLeft = gunType.getShootDelay(stack,player);
+				else FlansModClient.shootTimeRight = gunType.getShootDelay(stack,player);
 				if(gunType.consumeGunUponUse)
 					return true;
 
@@ -791,7 +791,7 @@ public class ItemGun extends Item implements IFlanItem
 				{
 					//Set player shoot delay to be the reload delay
 					//Set both gun delays to avoid reloading two guns at once
-					data.shootTimeRight = data.shootTimeLeft = (int)gunType.getReloadTime(gunStack);
+					data.shootTimeRight = data.shootTimeLeft = (int)gunType.getReloadTime(gunStack,entityplayer);
 					
 					if(left)
 					{
@@ -947,7 +947,7 @@ public class ItemGun extends Item implements IFlanItem
 			
 			for (int k = 0; k < gunType.numBullets; k++)
 			{
-				world.spawnEntityInWorld(((ItemShootable)bulletStack.getItem()).getEntity(world, entityplayer, (entityplayer.isSneaking() ? 0.7F : 1F) * gunType.getSpread(stack), gunType.getDamage(stack), gunType.getBulletSpeed(stack), gunType.numBullets > 1,bulletStack.getItemDamage(), gunType));
+				world.spawnEntityInWorld(((ItemShootable)bulletStack.getItem()).getEntity(world, entityplayer, (entityplayer.isSneaking() ? 0.7F : 1F) * gunType.getSpread(stack,entityplayer), gunType.getDamage(stack), gunType.getBulletSpeed(stack), gunType.numBullets > 1,bulletStack.getItemDamage(), gunType));
 			}
 			// Drop item on shooting if bullet requires it
 			if(bullet.dropItemOnShoot != null && !entityplayer.capabilities.isCreativeMode)
@@ -957,8 +957,8 @@ public class ItemGun extends Item implements IFlanItem
 				dropItem(world, entityplayer, gunType.dropItemOnShoot);
 		}
 		if(left)
-			PlayerHandler.getPlayerData(entityplayer).shootTimeLeft = gunType.shootDelay;
-		else PlayerHandler.getPlayerData(entityplayer).shootTimeRight = gunType.shootDelay;
+			PlayerHandler.getPlayerData(entityplayer).shootTimeLeft = gunType.getShootDelay(stack,entityplayer);
+		else PlayerHandler.getPlayerData(entityplayer).shootTimeRight = gunType.getShootDelay(stack,entityplayer);
 		if(gunType.knockback > 0)
 		{
 			//TODO : Apply knockback		

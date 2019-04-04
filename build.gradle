@@ -67,8 +67,6 @@ artifacts {
 build.finalizedBy('proguard')
 
 task('proguard', type: ProGuardTask) {
-    //configuration 'configuration.pro'
-
     injars 'build/libs/' + project.name + '-' + project.version + '-client.jar'
     outjars 'build/obf/' + project.name + '-' + project.version + '-client-obf.jar'
     injars 'build/libs/' + project.name + '-' + project.version + '-server.jar'
