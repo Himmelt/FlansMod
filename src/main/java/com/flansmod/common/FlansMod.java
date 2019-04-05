@@ -260,6 +260,7 @@ public class FlansMod {
     public void registerCommand(FMLServerStartedEvent e) {
         CommandHandler handler = ((CommandHandler) FMLCommonHandler.instance().getSidedDelegate().getServer().getCommandManager());
         handler.registerCommand(new CommandTeams());
+        handler.registerCommand(new FlansCommand());
     }
 
     @SubscribeEvent
