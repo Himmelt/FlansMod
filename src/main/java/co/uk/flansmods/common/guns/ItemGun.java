@@ -404,23 +404,7 @@ public class ItemGun extends Item {
             // Spawn the bullet entities
 
             for (int k = 0; k < type.numBullets; k++) {
-
-                ItemBullet bulletstack = (ItemBullet) bulletStack.getItem();
-                float bulletSpread = (entityplayer.isSneaking() ? 0.7F : 1.0F) * type.getSpread(stack);
-                float damage = type.getDamage(stack);
-                float bulletSpeed = type.getBulletSpeed(stack);
-                boolean b = type.numBullets > 1;
-                int itemDamage = bulletStack.getItemDamage();
-                if (world.isRemote) {
-                    Entity entity = bulletstack.getEntity(world, entityplayer, bulletSpread, damage, bulletSpeed, b, itemDamage, type);
-                    world.spawnEntityInWorld(entity);
-                    //System.out.println("客户端创建子弹!");
-                } else {
-                    RunningBullet running = bulletstack.getBullet(world, entityplayer, bulletSpread, damage, bulletSpeed, b, itemDamage, type);
-                    RunningBulletManager.getManager(world).spawn(running);
-                    //System.out.println("服务端创建子弹!");
-                }
-                //world.spawnEntityInWorld(((ItemBullet) bulletStack.getItem()).getEntity(world, entityplayer, (entityplayer.isSneaking() ? 0.7F : 1F) * type.getSpread(stack), type.getDamage(stack), type.getBulletSpeed(stack), type.numBullets > 1, bulletStack.getItemDamage(), type));
+                world.spawnEntityInWorld(((ItemBullet) bulletStack.getItem()).getEntity(world, entityplayer, (entityplayer.isSneaking() ? 0.7F : 1F) * type.getSpread(stack), type.getDamage(stack), type.getBulletSpeed(stack), type.numBullets > 1, bulletStack.getItemDamage(), type));
             }
             // Drop item on shooting if bullet requires it
             if (bullet.dropItemOnShoot != null && !entityplayer.capabilities.isCreativeMode)
