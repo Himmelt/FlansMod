@@ -947,7 +947,13 @@ public class ItemGun extends Item implements IFlanItem
 			
 			for (int k = 0; k < gunType.numBullets; k++)
 			{
-				world.spawnEntityInWorld(((ItemShootable)bulletStack.getItem()).getEntity(world, entityplayer, (entityplayer.isSneaking() ? 0.7F : 1F) * gunType.getSpread(stack,entityplayer), gunType.getDamage(stack), gunType.getBulletSpeed(stack), gunType.numBullets > 1,bulletStack.getItemDamage(), gunType));
+				world.spawnEntityInWorld(((ItemShootable)bulletStack.getItem()).getEntity(
+						world,
+						entityplayer,
+						(entityplayer.isSneaking() ? 0.7F : 1F) * gunType.getSpread(stack,entityplayer),
+						gunType.getDamage(stack),
+						gunType.getBulletSpeed(stack),
+						gunType.numBullets > 1,bulletStack.getItemDamage(), gunType));
 			}
 			// Drop item on shooting if bullet requires it
 			if(bullet.dropItemOnShoot != null && !entityplayer.capabilities.isCreativeMode)
