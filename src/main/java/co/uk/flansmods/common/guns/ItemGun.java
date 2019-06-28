@@ -64,6 +64,7 @@ public class ItemGun extends Item {
      * Get the bullet item stack stored in the gun's NBT data (the loaded magazine / bullets)
      */
     public ItemStack getBulletItemStack(ItemStack gun, int id) {
+        if (gun == null) return null;
         //If the gun has no tags, give it some
         if (!gun.hasTagCompound()) {
             gun.stackTagCompound = new NBTTagCompound("tag");
@@ -81,12 +82,13 @@ public class ItemGun extends Item {
         //Take the list of ammo tags
         NBTTagList ammoTagsList = gun.stackTagCompound.getTagList("ammo");
         //Get the specific ammo tags required
-        NBTTagCompound ammoTags = (NBTTagCompound) ammoTagsList.tagAt(id);
-        //If the ammo tags have no id key, then there is no ammo stack
-        if (!ammoTags.hasKey("id"))
-            return null;
-        //If all is well, get the stack from the tags
-        return new ItemStack(ammoTags.getShort("id"), ammoTags.getShort("num"), ammoTags.getShort("dam"));
+        if (ammoTagsList != null && id < ammoTagsList.tagCount()) {
+            NBTTagCompound ammoTags = (NBTTagCompound) ammoTagsList.tagAt(id);
+            //If the ammo tags have no id key, then there is no ammo stack
+            if (!ammoTags.hasKey("id")) return null;
+            //If all is well, get the stack from the tags
+            return new ItemStack(ammoTags.getShort("id"), ammoTags.getShort("num"), ammoTags.getShort("dam"));
+        } else return null;
     }
 
     /**
