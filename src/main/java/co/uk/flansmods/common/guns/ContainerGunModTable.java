@@ -75,7 +75,7 @@ public class ContainerGunModTable extends Container {
             }
 
             if (slotStack.stackSize == 0) {
-                currentSlot.putStack((ItemStack) null);
+                currentSlot.putStack(null);
             } else {
                 currentSlot.onSlotChanged();
             }

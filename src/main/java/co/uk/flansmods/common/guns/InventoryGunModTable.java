@@ -19,11 +19,9 @@ public class InventoryGunModTable extends InventoryBasic {
 
     @Override
     public void onInventoryChanged() {
-        if (busy)
-            return;
+        if (busy) return;
         ItemStack gunStack = getStackInSlot(0);
-        if (gunStack == null || !(gunStack.getItem() instanceof ItemGun))
-            return;
+        if (gunStack == null || !(gunStack.getItem() instanceof ItemGun)) return;
 
         gunType = ((ItemGun) gunStack.getItem()).type;
 
@@ -43,9 +41,10 @@ public class InventoryGunModTable extends InventoryBasic {
         //Else we changed an attachment
         else {
             //Create a new NBT tag compound for our gun item
-            NBTTagCompound gunTags = new NBTTagCompound();
+            NBTTagCompound gunTags = getStackInSlot(0).stackTagCompound;
+            if (gunTags == null) gunTags = new NBTTagCompound();
             //Copy the ammo from the old stack
-            gunTags.setTag("ammo", getStackInSlot(0).stackTagCompound.getTagList("ammo"));
+            //gunTags.setTag("ammo", getStackInSlot(0).stackTagCompound.getTagList("ammo"));
 
             //Add each attachment from the inventory to our gun stack
             NBTTagCompound attachmentTags = new NBTTagCompound();
@@ -64,7 +63,7 @@ public class InventoryGunModTable extends InventoryBasic {
 
             //Set the tags to be these new tags
             gunTags.setCompoundTag("attachments", attachmentTags);
-            gunStack.stackTagCompound = gunTags;
+            //gunStack.stackTagCompound = gunTags;
         }
 
         lastGunStack = gunStack;
